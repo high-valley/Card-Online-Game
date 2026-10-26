@@ -95,6 +95,17 @@ export function analyze(cardIds, jokerAs = []) {
   return combos;
 }
 
+/** 手札の並び順：弱い順（ジョーカーは最後）。革命中は逆順 */
+export function sortHand(hand, game) {
+  const suitOrder = 'SHDC';
+  const sign = game?.revolution ? -1 : 1;
+  const key = (id) => {
+    const c = parseCard(id);
+    return c.joker ? Infinity : sign * c.rank;
+  };
+  return [...hand].sort((x, y) => key(x) - key(y) || suitOrder.indexOf(x[0]) - suitOrder.indexOf(y[0]));
+}
+
 const dir = (g) => (g.revolution ? -1 : 1);
 
 /** 強さの比較用の値（大きいほど強い）。ジョーカー1枚出しは革命中も最強 */

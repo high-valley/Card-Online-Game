@@ -43,7 +43,8 @@
  * @property {(game: Object, hand: CardId[], action: Object) => CheckResult} canPlay
  * @property {(game: Object, action: Object) => ApplyResult} applyAction
  * @property {(game: Object) => GameResult} getResult
+ * @property {(hand: CardId[], game: Object) => CardId[]} sortHand  手札の並び順
  * @property {*} [OptionsForm]  待機画面のルール設定フォーム（フェーズ3）
- * @property {*} [Board]        ゲーム画面の中央部分（フェーズ2）
+ * @property {(props: {game: Object, hand: CardId[], uid: string, selected: CardId[], names: Object<string,string>, onAction: (action: Object) => void, busy: boolean}) => HTMLElement} Board  ゲーム画面の中央部分
  */
 export {};

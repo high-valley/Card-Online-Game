@@ -1,0 +1,44 @@
+:root {
+  --bg: #0f5132; --panel: #166a42; --ink: #f4f7f5; --sub: #b9d6c6; --accent: #ffd54a; --danger: #ff8a80;
+  --card-bg: #fff; --card-ink: #1a1a1a; --card-red: #c62828;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif; }
+.screen { max-width: 640px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-height: 100dvh; }
+h1 { margin: 8px 0 0; font-size: 1.5rem; } h2 { margin: 12px 0 0; font-size: 1.05rem; color: var(--sub); }
+.sub { color: var(--sub); font-size: .85rem; margin: 2px 0; }
+.notice { color: var(--danger); margin: 0; }
+button, input, select { font: inherit; min-height: 44px; border-radius: 8px; border: 1px solid #0003; padding: 8px 12px; }
+button { background: #e8f0ec; color: #123; cursor: pointer; }
+button.primary { background: var(--accent); font-weight: 700; }
+button.link { background: none; border: none; color: var(--sub); text-decoration: underline; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.field-row { display: flex; flex-direction: column; gap: 4px; }
+.field-row input, .join-row input, .invite input, select { width: 100%; }
+.join-row, .invite { display: flex; gap: 8px; }
+.game-list, .players { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.game-list li, .players li { background: var(--panel); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.badge { background: #0003; border-radius: 6px; padding: 2px 8px; margin-left: 6px; font-size: .8rem; } .badge.hot { background: var(--danger); color: #300; font-weight: 700; }
+
+.game { padding-bottom: 8px; }
+.opponents { display: flex; gap: 6px; flex-wrap: wrap; }
+.opp { flex: 1; min-width: 70px; background: var(--panel); border-radius: 8px; padding: 6px 8px; text-align: center; border: 2px solid transparent; }
+.opp.turn { border-color: var(--accent); } .opp.out { opacity: .55; }
+.opp-name { font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .opp-count { font-weight: 700; }
+.skip { background: #0004; padding: 8px; border-radius: 8px; }
+.board { background: var(--panel); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; flex: 1; justify-content: center; }
+.badges { min-height: 24px; } .field { min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.field-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; } .field-empty, .field-by, .hint { color: var(--sub); font-size: .9rem; }
+.hint { min-height: 1.3em; text-align: center; } .actions { display: flex; gap: 12px; } .actions button { min-width: 110px; }
+.log { margin: 0; padding-left: 1.2em; color: var(--sub); font-size: .8rem; }
+.hand { display: flex; flex-wrap: wrap; justify-content: center; padding-top: 14px; }
+.hand .card { margin: 0 -6px; }
+
+.card { width: 52px; height: 74px; background: var(--card-bg); color: var(--card-ink); border-radius: 6px; border: 1px solid #0004; padding: 2px; min-height: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; line-height: 1.1; transition: transform .1s; }
+.card:disabled { opacity: 1; cursor: default; } .card.red { color: var(--card-red); } .card.joker { color: #6a1b9a; font-size: .7rem; }
+.card .rank { font-size: 1.15rem; } .card .suit { font-size: 1.3rem; }
+.card.selected { transform: translateY(-14px); outline: 3px solid var(--accent); }
+@media (max-width: 480px) { .card { width: 46px; height: 66px; } }
+
+.result { width: 100%; border-collapse: collapse; } .result th, .result td { padding: 8px; text-align: left; border-bottom: 1px solid #fff2; } .result tr.me { background: #ffd54a33; }
