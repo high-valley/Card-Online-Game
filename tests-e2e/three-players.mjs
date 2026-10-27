@@ -55,12 +55,12 @@ async function tryMove(p) {
   return false;
 }
 
-const deadline = Date.now() + 120_000;
+const deadline = Date.now() + Number(process.env.DEADLINE_MS ?? 120_000);
 let moves = 0;
 while (Date.now() < deadline) {
   if (await host.locator('table.result').count()) break;
   let moved = false;
-  for (const p of pages) if (await tryMove(p).catch(() => false)) { moved = true; moves++; await p.waitForTimeout(150); }
+  for (const p of pages) { const t0 = Date.now(); if (await tryMove(p).catch(() => false)) { moved = true; moves++; if (process.env.TIMING) console.log(`move ${moves}: ${Date.now() - t0}ms`); await p.waitForTimeout(150); } }
   if (!moved) await host.waitForTimeout(200);
 }
 console.log('moves', moves);
