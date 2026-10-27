@@ -64,6 +64,9 @@ while (Date.now() < deadline) {
   if (!moved) await host.waitForTimeout(200);
 }
 console.log('moves', moves);
+if (!(await host.locator('table.result').count())) {
+  for (const [i, p] of pages.entries()) console.log(`[${names[i]}] 停滞時の画面:`, (await p.locator('body').innerText()).replace(/\n+/g, ' / ').slice(0, 400));
+}
 await Promise.all(pages.map((p) => p.waitForSelector('table.result', { timeout: 10_000 })));
 ok(true, '全員が結果画面に到達した');
 console.log(await host.locator('table.result').innerText());
