@@ -32,6 +32,8 @@ function render() {
   else if (m.room.status === 'finished' && m.state?.result) el = resultScreen({ app, model: m, actions });
   else if (m.room.status === 'playing' || m.room.status === 'finished') el = loading('読み込み中…');
   else el = lobbyScreen({ app, model: m, actions });
+  // 表示が変わらないときは差し替えない（タップ中に画面が作り直されて操作が無効になるのを防ぐ）
+  if (root.firstElementChild?.outerHTML === el.outerHTML) return;
   root.replaceChildren(el);
 }
 
