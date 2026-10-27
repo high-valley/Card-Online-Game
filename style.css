@@ -47,3 +47,13 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .rule { display: flex; gap: 10px; align-items: flex-start; background: var(--panel); border-radius: 8px; padding: 10px 12px; min-height: 44px; }
 .rule input { width: 22px; height: 22px; min-height: 0; flex: none; margin-top: 2px; }
 .rule.soon { opacity: .6; }
+
+/* ジン・ラミー */
+.board.gin .scores { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; font-size: .85rem; color: var(--sub); } .board.gin .scores .me { color: var(--ink); font-weight: 700; }
+.piles { display: flex; gap: 24px; justify-content: center; } .pile { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.card.back { background: repeating-linear-gradient(45deg, #1e5aa8, #1e5aa8 6px, #2a6bc0 6px, #2a6bc0 12px); color: #fff; font-size: .7rem; } .card.back:disabled { opacity: .8; }
+.card.empty { background: transparent; border: 2px dashed #fff4; }
+.card.small { width: 36px; height: 52px; } .card.small .rank { font-size: .9rem; } .card.small .suit { font-size: 1rem; }
+.meld-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; } .meld { display: inline-flex; gap: 2px; }
+.declared, .reveal { background: #0003; border-radius: 8px; padding: 8px; width: 100%; } .gin-result { display: flex; flex-direction: column; gap: 8px; }
+.board.gin .actions { flex-wrap: wrap; justify-content: center; } .board.gin .actions button { min-width: 90px; }

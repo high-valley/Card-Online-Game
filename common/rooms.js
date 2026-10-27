@@ -8,6 +8,8 @@ export const roomRef = (roomId) => doc(db, 'cards_rooms', roomId);
 export const playerRef = (roomId, uid) => doc(db, 'cards_rooms', roomId, 'players', uid);
 export const stateRef = (roomId) => doc(db, 'cards_rooms', roomId, 'state', 'current');
 export const handRef = (roomId, uid) => doc(db, 'cards_rooms', roomId, 'hands', uid);
+/** 山札など、誰にも見せない札（山札を使うゲームだけ。仕様書5章） */
+export const deckRef = (roomId) => doc(db, 'cards_rooms', roomId, 'deck', 'current');
 
 const fail = (code) => Object.assign(new Error(code), { code });
 const randomCode = () => String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0');
@@ -124,6 +126,7 @@ async function deleteRoom(roomId, room) {
     batch.delete(handRef(roomId, d.id));
   }
   batch.delete(stateRef(roomId));
+  batch.delete(deckRef(roomId));
   batch.delete(doc(db, 'cards_codes', room.code));
   batch.delete(roomRef(roomId));
   await batch.commit();

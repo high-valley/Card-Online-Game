@@ -84,6 +84,11 @@ service cloud.firestore {
         allow delete: if isHost(roomId);
       }
 
+      // 山札（山札を使うゲームだけ）。ホストだけが読める形にはできない：各プレイヤーが自分の操作で引くため
+      match /deck/current {
+        allow read, write: if isMember(roomId);
+      }
+
       match /transfers/{id} {
         allow create: if isMember(roomId) && request.resource.data.from == request.auth.uid;
         allow read: if signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);

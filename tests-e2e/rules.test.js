@@ -58,6 +58,15 @@ describe('ゲーム状態', () => {
   });
 });
 
+describe('山札（ジン・ラミーなど）', () => {
+  it('参加者だけが読み書きできる', async () => {
+    await assertSucceeds(setDoc(doc(as('a'), `${R}/deck/current`), { cards: ['S3'] }));
+    await assertSucceeds(getDoc(doc(as('b'), `${R}/deck/current`)));
+    await assertFails(getDoc(doc(as('outsider'), `${R}/deck/current`)));
+    await assertFails(setDoc(doc(as('outsider'), `${R}/deck/current`), { cards: [] }));
+  });
+});
+
 describe('ルーム', () => {
   it('gameId・options・status はホストだけが変更できる', async () => {
     await assertFails(updateDoc(doc(as('a'), R), { gameId: 'x' }));

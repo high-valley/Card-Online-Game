@@ -21,6 +21,7 @@ const app = { uid: null, name: store.get(), roomId: null, model: null, invite: n
 let unsubscribe = null;
 let timers = [];
 const root = document.getElementById('app');
+if (import.meta.env.DEV) window.__app = app; // 開発中のテスト・調査用
 
 function render() {
   const m = app.model;
@@ -70,11 +71,23 @@ function enter(roomId) {
     if (status) prevStatus = status;
     app.model = model;
     render();
+    autoAct(model);
   });
   heartbeat(roomId, app.uid);
   // 30秒ごとに生存を知らせ、5秒ごとに「応答なし」の表示を更新する
   timers = [setInterval(() => heartbeat(roomId, app.uid), 30_000), setInterval(render, 5_000)];
   render();
+}
+
+/** 画面操作を待たずに自動で出す操作（ジン・ラミーのノックされた側の手札公開など） */
+let autoSent = null;
+function autoAct(model) {
+  const { room, state } = model;
+  if (room?.status !== 'playing' || !state?.game || app.busy) return;
+  const action = getGame(room.gameId)?.autoAction?.(state.game, app.uid);
+  if (!action || autoSent === state.version) return;
+  autoSent = state.version;
+  actions.act(action);
 }
 
 function detach() {
@@ -159,7 +172,10 @@ const actions = {
     render();
   },
   toggleCard(id) {
-    if (!app.selected.delete(id)) app.selected.add(id);
+    const mod = getGame(app.model.room.gameId);
+    const wasSelected = app.selected.delete(id);
+    if (mod.selection === 'single') app.selected.clear(); // 1枚だけ選ぶゲーム
+    if (!wasSelected) app.selected.add(id);
     render();
   },
   act(action) {

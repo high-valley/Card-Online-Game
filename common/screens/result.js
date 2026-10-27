@@ -7,13 +7,14 @@ export function resultScreen({ app, model, actions }) {
   const result = state.result;
   const isHost = room.hostUid === uid;
   const names = Object.fromEntries(players.map((p) => [p.uid, p.name]));
+  const mod = getGame(room.gameId);
   const totals = (p) => p.totalPoints?.[room.gameId] ?? 0;
 
   return h(
     'main',
     { class: 'screen' },
     h('h1', null, '結果'),
-    h('p', { class: 'sub' }, `${getGame(room.gameId).name} 第${state.round}回`),
+    h('p', { class: 'sub' }, `${mod.name} 第${state.round}回`),
     h(
       'table',
       { class: 'result' },
@@ -27,10 +28,11 @@ export function resultScreen({ app, model, actions }) {
         }),
       ),
     ),
+    mod.ResultDetail?.({ result, names, uid, game: state.game }),
     app.notice && h('p', { class: 'notice' }, app.notice),
     isHost
       ? [
-          h('button', { class: 'primary', disabled: app.busy, onClick: () => actions.start() }, 'もう一度'),
+          h('button', { class: 'primary', disabled: app.busy, onClick: () => actions.start() }, mod.resultActionLabel?.(result) ?? 'もう一度'),
           h('button', { disabled: app.busy, onClick: () => actions.backToLobby() }, '別のゲームで遊ぶ'),
         ]
       : h('p', { class: 'sub' }, 'ホストの操作を待っています…'),

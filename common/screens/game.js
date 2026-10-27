@@ -6,7 +6,9 @@ const STALE_MS = 60_000;
 
 const effectText = { 'eight-cut': '8切り', revolution: '革命', spade3: 'スペ3返し', lock: 'しばり', flush: '場が流れた', out: '上がり', foul: '反則上がり', fall: '都落ち' };
 
-function logLine(entry, names) {
+function logLine(entry, names, mod) {
+  const custom = mod.logText?.(entry, names);
+  if (custom) return custom;
   const who = names[entry.uid] ?? '?';
   const base = entry.type === 'play' ? `${who}: ${entry.cards.join(' ')}` : entry.type === 'pass' ? `${who}: パス` : `${who}: スキップ`;
   const fx = (entry.effects ?? []).map((e) => effectText[e]).filter(Boolean);
@@ -29,21 +31,21 @@ export function gameScreen({ app, model, actions }) {
   const selected = sorted.filter((c) => app.selected.has(c));
   const mine = turn === uid;
 
-  const ordered = g.order.map((u) => players.find((p) => p.uid === u)).filter(Boolean);
   return h(
     'main',
     { class: 'screen game' },
     h(
       'div',
       { class: 'opponents' },
-      ordered.map((p) =>
-        h(
+      players.map((p) => {
+        const st = mod.playerStatus?.(g, p) ?? { text: `${p.handCount}枚`, out: false };
+        return h(
           'div',
-          { class: `opp${p.uid === turn ? ' turn' : ''}${g.finished.includes(p.uid) || g.fallen.includes(p.uid) ? ' out' : ''}` },
+          { class: `opp${p.uid === turn ? ' turn' : ''}${st.out ? ' out' : ''}` },
           h('div', { class: 'opp-name' }, p.name, p.uid === uid && '（自分）'),
-          h('div', { class: 'opp-count' }, g.finished.includes(p.uid) ? `${g.finished.indexOf(p.uid) + 1}位` : `${p.handCount}枚`),
-        ),
-      ),
+          h('div', { class: 'opp-count' }, st.text),
+        );
+      }),
     ),
     stale && isHost && h('div', { class: 'skip' }, `${turnPlayer.name} の応答がありません `, h('button', { disabled: app.busy, onClick: () => actions.skip() }, 'スキップ')),
     mod.Board({
@@ -51,7 +53,7 @@ export function gameScreen({ app, model, actions }) {
       onAction: (action) => actions.act(action),
     }),
     app.notice && h('p', { class: 'notice' }, app.notice),
-    h('ol', { class: 'log' }, state.log.slice(-5).reverse().map((e) => h('li', null, logLine(e, names)))),
+    h('ol', { class: 'log' }, state.log.slice(-5).reverse().map((e) => h('li', null, logLine(e, names, mod)))),
     h(
       'div',
       { class: 'hand' },

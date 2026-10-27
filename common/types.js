@@ -26,6 +26,8 @@
  * @property {Object} game      更新後の game 欄
  * @property {string|null} turnUid  次の手番（終了時は null）
  * @property {Object} log       ログ1件分（UI が整形する）
+ * @property {CardId[]} [hand]   操作後の自分の手札（返さない場合は「action.cards を引く」）
+ * @property {CardId[]} [deck]   操作後の山札（usesDeck のゲームのみ）
  *
  * @typedef {Object} GameResult
  * @property {boolean} finished
@@ -38,10 +40,17 @@
  * @property {number} minPlayers
  * @property {number} maxPlayers
  * @property {{jokers: number}} deck  山札の指定（ジョーカー枚数）
+ * @property {boolean} [usesDeck]  true なら、配布後の山札を非公開で保存し、applyAction の ctx.deck に渡す（ジン・ラミーなど）
+ * @property {'multi'|'single'} [selection]  手札の選び方（既定は複数選択）
+ * @property {(game: Object, uid: string) => Object|null} [autoAction]  画面操作を待たずに自動で出す操作（あれば）
+ * @property {(game: Object, player: Object) => {text: string, out: boolean}} [playerStatus]  他プレイヤー欄の表示
+ * @property {(entry: Object, names: Object<string,string>) => string|null} [logText]  ログ1件の文言
+ * @property {(props: {result: Object, names: Object<string,string>, uid: string, game: Object}) => HTMLElement} [ResultDetail]  結果画面の追加表示
+ * @property {(result: Object) => string} [resultActionLabel]  結果画面のホスト用ボタンの文言（既定は「もう一度」）
  * @property {Object} defaultOptions
  * @property {(players: PlayerInfo[], options: Object, prevResult?: GameResult|null, deck?: CardId[]) => DealResult} deal
  * @property {(game: Object, hand: CardId[], action: Object) => CheckResult} canPlay
- * @property {(game: Object, action: Object) => ApplyResult} applyAction
+ * @property {(game: Object, action: Object, ctx?: {hand: CardId[]|null, deck: CardId[]|null}) => ApplyResult} applyAction  ctx は非公開の手札・山札
  * @property {(game: Object) => GameResult} getResult
  * @property {(hand: CardId[], game: Object) => CardId[]} sortHand  手札の並び順
  * @property {(props: {options: Object, onChange: (patch: Object) => void, readOnly: boolean}) => HTMLElement} [OptionsForm]  待機画面のルール設定フォーム。readOnly のときはホスト以外向けの表示だけ

@@ -1,7 +1,7 @@
 import { runTransaction, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore';
 import { getGame } from '../games/index.js';
 import { db } from './firebase.js';
-import { handRef, playerRef, roomRef, stateRef } from './rooms.js';
+import { deckRef, handRef, playerRef, roomRef, stateRef } from './rooms.js';
 
 const fail = (code) => Object.assign(new Error(code), { code });
 const LOG_LIMIT = 20;
@@ -23,6 +23,7 @@ export async function startRound({ roomId, room, players, state }) {
     batch.set(handRef(roomId, p.uid), { cards: dealt.hands[p.uid] });
     batch.update(playerRef(roomId, p.uid), { handCount: dealt.hands[p.uid].length });
   }
+  if (dealt.deck) batch.set(deckRef(roomId), { cards: dealt.deck });
   batch.set(stateRef(roomId), {
     gameId: room.gameId,
     round: state?.gameId === room.gameId ? state.round + 1 : 1,
@@ -51,21 +52,25 @@ export async function submitAction({ roomId, uid, gameId, action, expectedVersio
 
     const own = action.type !== 'skip';
     const hand = own ? (await tx.get(handRef(roomId, uid))).data().cards : [];
+    // 山札を使うゲームだけ、山札（非公開）も読む
+    const deck = mod.usesDeck ? ((await tx.get(deckRef(roomId))).data()?.cards ?? null) : null;
     const checked = mod.canPlay(st.game, hand, action);
     if (!checked.ok) throw fail(checked.reason);
 
-    const applied = mod.applyAction(st.game, action);
+    const applied = mod.applyAction(st.game, action, { hand: own ? hand : null, deck });
     const result = mod.getResult(applied.game);
     const players = {};
     if (result.finished) {
       for (const u of st.game.order) players[u] = (await tx.get(playerRef(roomId, u))).data();
     }
 
-    if (action.type === 'play') {
-      const rest = hand.filter((c) => !action.cards.includes(c));
-      tx.set(handRef(roomId, uid), { cards: rest });
-      tx.update(playerRef(roomId, uid), { handCount: rest.length });
+    // 手札の更新：ゲームが新しい手札を返したらそれを、返さない場合は「出したカードを引く」（大富豪）
+    const nextHand = applied.hand ?? (action.type === 'play' ? hand.filter((c) => !action.cards.includes(c)) : null);
+    if (nextHand) {
+      tx.set(handRef(roomId, uid), { cards: nextHand });
+      tx.update(playerRef(roomId, uid), { handCount: nextHand.length });
     }
+    if (applied.deck) tx.set(deckRef(roomId), { cards: applied.deck });
     tx.update(stateRef(roomId), {
       game: applied.game,
       turnUid: applied.turnUid,
