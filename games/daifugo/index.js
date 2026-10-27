@@ -1,4 +1,5 @@
 import { Board } from './Board.js';
+import { OptionsForm } from './OptionsForm.js';
 import { DECK_SPEC, applyAction, canPlay, deal, defaultOptions, getResult, sortHand } from './rules.js';
 
 /** @type {import('../../common/types.js').GameModule} */
@@ -16,4 +17,5 @@ export default {
   getResult,
   sortHand,
   Board,
+  OptionsForm,
 };

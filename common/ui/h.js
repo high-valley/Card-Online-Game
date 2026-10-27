@@ -5,7 +5,10 @@ export function h(tag, props, ...children) {
     if (v == null || v === false) continue;
     if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
     else if (k === 'class') el.className = v;
-    else if (k in el && k !== 'list') el[k] = v;
+    else if (k === 'checked' || k === 'selected') {
+      el[k] = true;
+      el.setAttribute(k, '');
+    } else if (k in el && k !== 'list') el[k] = v;
     else el.setAttribute(k, v === true ? '' : v);
   }
   for (const c of children.flat(Infinity)) {

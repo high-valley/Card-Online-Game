@@ -83,8 +83,10 @@ export function changeGame(roomId, gameId) {
   });
 }
 
-export function setOptions(roomId, options) {
-  return updateDoc(roomRef(roomId), { options, updatedAt: serverTimestamp() });
+/** ルール設定を項目ごとに更新する（続けて切り替えても、先の変更を古い値で上書きしない） */
+export function setOptions(roomId, patch) {
+  const fields = Object.fromEntries(Object.entries(patch).map(([k, v]) => [`options.${k}`, v]));
+  return updateDoc(roomRef(roomId), { ...fields, updatedAt: serverTimestamp() });
 }
 
 export function backToLobby(roomId) {

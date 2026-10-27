@@ -21,7 +21,13 @@ export function lobbyScreen({ app, model, actions }) {
       { class: 'players' },
       players.map((p) => h('li', null, p.name, p.uid === room.hostUid && h('span', { class: 'badge' }, 'ホスト'), p.uid === uid && h('span', { class: 'sub' }, '（あなた）'))),
     ),
-    isHost && game.OptionsForm && h('div', { class: 'options' }, h('h2', null, 'ルール設定'), game.OptionsForm({ options: room.options, onChange: actions.setOptions })),
+    game.OptionsForm &&
+      h(
+        'div',
+        { class: 'options' },
+        h('h2', null, isHost ? 'ルール設定' : 'ルール（ホストが設定します）'),
+        game.OptionsForm({ options: room.options, onChange: actions.setOptions, readOnly: !isHost }),
+      ),
     app.notice && h('p', { class: 'notice' }, app.notice),
     isHost
       ? [

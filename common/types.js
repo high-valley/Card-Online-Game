@@ -44,7 +44,7 @@
  * @property {(game: Object, action: Object) => ApplyResult} applyAction
  * @property {(game: Object) => GameResult} getResult
  * @property {(hand: CardId[], game: Object) => CardId[]} sortHand  手札の並び順
- * @property {*} [OptionsForm]  待機画面のルール設定フォーム（フェーズ3）
+ * @property {(props: {options: Object, onChange: (patch: Object) => void, readOnly: boolean}) => HTMLElement} [OptionsForm]  待機画面のルール設定フォーム。readOnly のときはホスト以外向けの表示だけ
  * @property {(props: {game: Object, hand: CardId[], uid: string, selected: CardId[], names: Object<string,string>, onAction: (action: Object) => void, busy: boolean}) => HTMLElement} Board  ゲーム画面の中央部分
  */
 export {};
