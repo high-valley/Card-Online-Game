@@ -40,4 +40,12 @@ npm run test:e2e       # 3人対戦（大富豪）の通しテスト（途中終
 ```
 node tests-e2e/gin-rummy.mjs   # 2人で山札切れまで通す
 node tests-e2e/gin-knock.mjs   # 決まった手札でノック→手札公開→得点まで通す
+LEVEL=hard node tests-e2e/gin-cpu.mjs   # CPU対戦（easy / normal / hard）を1ラウンド通す
+node tools/cpu-bench.mjs 400   # CPUの強さ比べ（難易度どうしを対戦させて勝率・得点差を表示）
 ```
+
+### CPU対戦
+
+トップ画面のジン・ラミーの欄から、強さ（かんたん／ふつう／つよい）を選んで1人で始める。Firebase は使わず、ブラウザの中だけで進む（`common/localMatch.js`）。
+CPU（`games/gin-rummy/cpu.js`）は、自分の手札と公開情報、相手の公開された行動だけで判断し、山札や人間の手札は参照しない。
+別のゲームでも、モジュールに `cpu: { levels, create }` を持たせればCPU対戦の欄が出る。

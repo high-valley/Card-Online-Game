@@ -42,6 +42,7 @@
  * @property {{jokers: number}} deck  山札の指定（ジョーカー枚数）
  * @property {boolean} [usesDeck]  true なら、配布後の山札を非公開で保存し、applyAction の ctx.deck に渡す（ジン・ラミーなど）
  * @property {'multi'|'single'} [selection]  手札の選び方（既定は複数選択）
+ * @property {{levels: {id: string, label: string}[], create: (level: string, uid: string, random?: () => number) => {reset(): void, observe(entry: Object, game: Object): void, decide(game: Object, hand: CardId[]): Object}}} [cpu]  CPU対戦に対応するゲームだけ。CPU は自分の手札と公開情報だけで decide する
  * @property {(game: Object, uid: string) => Object|null} [autoAction]  画面操作を待たずに自動で出す操作（あれば）
  * @property {(game: Object, player: Object) => {text: string, out: boolean}} [playerStatus]  他プレイヤー欄の表示
  * @property {(entry: Object, names: Object<string,string>) => string|null} [logText]  ログ1件の文言

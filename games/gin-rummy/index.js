@@ -1,4 +1,5 @@
 import { Board } from './Board.js';
+import { CPU_LEVELS, createCpu } from './cpu.js';
 import { ResultDetail } from './ResultDetail.js';
 import { DECK_SPEC, applyAction, autoAction, canPlay, deal, defaultOptions, getResult, sortHand } from './rules.js';
 
@@ -26,7 +27,7 @@ export default {
   name: 'ジン・ラミー',
   minPlayers: 2,
   maxPlayers: 2,
-  description: '2人対戦。役を作ってノック・ジン。累積100点でマッチ終了',
+  description: '2人対戦（CPU対戦あり）。役を作ってノック・ジン。累積100点でマッチ終了',
   deck: DECK_SPEC,
   usesDeck: true,
   selection: 'single',
@@ -40,6 +41,7 @@ export default {
   Board,
   ResultDetail,
   logText,
+  cpu: { levels: CPU_LEVELS, create: createCpu },
   playerStatus: (game, player) => ({ text: `${player.handCount}枚 ／ ${game.scores[player.uid] ?? 0}点`, out: false }),
   resultActionLabel: (result) => (result.matchOver ? '新しいマッチを始める' : result.redeal ? '配り直す' : '次のラウンド'),
 };

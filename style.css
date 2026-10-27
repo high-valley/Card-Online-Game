@@ -57,3 +57,6 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .meld-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; } .meld { display: inline-flex; gap: 2px; }
 .declared, .reveal { background: #0003; border-radius: 8px; padding: 8px; width: 100%; } .gin-result { display: flex; flex-direction: column; gap: 8px; }
 .board.gin .actions { flex-wrap: wrap; justify-content: center; } .board.gin .actions button { min-width: 90px; }
+
+/* CPU対戦 */
+.game-list li { flex-wrap: wrap; } .cpu-row { width: 100%; display: flex; gap: 8px; align-items: center; } .cpu-row select { flex: 1; max-width: 160px; }

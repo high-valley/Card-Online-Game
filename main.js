@@ -4,6 +4,7 @@ import { ensureSignedIn } from './common/firebase.js';
 import {
   backToLobby, changeGame, cleanupOldRooms, createRoom, findRoomByCode, getMembership, heartbeat, joinRoom, leaveRoom, setOptions, subscribeRoom,
 } from './common/rooms.js';
+import { createLocalMatch } from './common/localMatch.js';
 import { gameScreen } from './common/screens/game.js';
 import { lobbyScreen } from './common/screens/lobby.js';
 import { resultScreen } from './common/screens/result.js';
@@ -19,6 +20,8 @@ const store = {
 
 const app = { uid: null, name: store.get(), roomId: null, model: null, invite: null, notice: '', busy: false, copied: false, selected: new Set() };
 let unsubscribe = null;
+/** CPU対戦中のローカル対戦（なければ null） */
+let local = null;
 let timers = [];
 const root = document.getElementById('app');
 if (import.meta.env.DEV) window.__app = app; // 開発中のテスト・調査用
@@ -91,6 +94,9 @@ function autoAct(model) {
 }
 
 function detach() {
+  local?.stop();
+  local = null;
+  autoSent = null;
   unsubscribe?.();
   unsubscribe = null;
   timers.forEach(clearInterval);
@@ -154,17 +160,52 @@ const actions = {
     });
   },
   start() {
+    if (local) {
+      app.selected.clear();
+      local.start();
+      return;
+    }
     const { roomId, room, players, state } = app.model;
     return run(() => startRound({ roomId, room, players, state }));
   },
   changeGame: (gameId) => run(() => changeGame(app.roomId, gameId)),
   setOptions: (options) => setOptions(app.roomId, options),
-  backToLobby: () => run(() => backToLobby(app.roomId)),
+  startCpu(gameId, levelId) {
+    if (!needName()) return;
+    detach();
+    local = createLocalMatch({
+      mod: getGame(gameId),
+      level: levelId,
+      humanUid: app.uid,
+      humanName: app.name.trim(),
+      onChange: (model) => {
+        app.model = model;
+        render();
+        autoAct(model);
+      },
+    });
+    app.roomId = 'local';
+    app.selected.clear();
+    local.start();
+  },
+  backToLobby() {
+    if (local) return actions.leave(); // CPU対戦にロビーはない。トップに戻る
+    return run(() => backToLobby(app.roomId));
+  },
   endGame() {
+    if (local) {
+      if (confirm('CPU対戦を途中でやめて、トップに戻ります。よろしいですか？')) actions.leave();
+      return;
+    }
     if (!confirm('ゲームを途中で終了して、全員を待機画面に戻します。今回の結果は記録されません。よろしいですか？')) return;
     return run(() => backToLobby(app.roomId));
   },
   async leave() {
+    if (local) {
+      detach();
+      render();
+      return;
+    }
     const status = app.model?.room?.status;
     // ゲーム中は参加者のまま画面だけ閉じる（招待URLを開き直せば戻れる）
     if (status !== 'playing' && status !== 'dealing') await leaveRoom(app.roomId, app.uid).catch(() => {});
@@ -179,6 +220,16 @@ const actions = {
     render();
   },
   act(action) {
+    if (local) {
+      try {
+        local.act(action);
+        app.selected.clear();
+      } catch (e) {
+        app.notice = engineErrorText(e);
+        render();
+      }
+      return;
+    }
     const { roomId, room, state } = app.model;
     return run(async () => {
       await submitAction({ roomId, uid: app.uid, gameId: room.gameId, action, expectedVersion: state.version });
