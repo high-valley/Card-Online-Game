@@ -28,6 +28,7 @@ function render() {
   if (!app.roomId) el = topScreen({ app, actions, invite: app.invite });
   else if (!m || m.room === undefined) el = loading('読み込み中…');
   else if (m.room === null) el = loading('ルームが見つかりません', true);
+  else if (!m.playersLoaded) el = loading('読み込み中…');
   else if (m.room.status === 'playing' && m.state?.game && !m.state.game.ended) el = gameScreen({ app, model: m, actions });
   else if (m.room.status === 'finished' && m.state?.result) el = resultScreen({ app, model: m, actions });
   else if (m.room.status === 'playing' || m.room.status === 'finished') el = loading('読み込み中…');

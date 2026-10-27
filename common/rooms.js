@@ -97,13 +97,15 @@ export function heartbeat(roomId, uid) {
 
 /** ルーム・参加者・ゲーム状態・自分の手札を購読し、変わるたびに model を渡す */
 export function subscribeRoom(roomId, uid, onChange) {
-  const model = { roomId, uid, room: undefined, players: [], state: null, hand: [] };
+  const model = { roomId, uid, room: undefined, players: [], playersLoaded: false, state: null, hand: [] };
   const emit = () => onChange({ ...model });
   const errors = (e) => console.warn('subscribe error', e.code);
   const offs = [
     onSnapshot(roomRef(roomId), (s) => { model.room = s.exists() ? s.data() : null; emit(); }, errors),
     onSnapshot(collection(db, 'cards_rooms', roomId, 'players'), (s) => {
       model.players = s.docs.map((d) => ({ uid: d.id, ...d.data() })).sort((a, b) => a.seat - b.seat);
+      // サーバーからの最初の結果が届くまでは「参加者0人」と誤って表示しない
+      if (!s.metadata.fromCache) model.playersLoaded = true;
       emit();
     }, errors),
     onSnapshot(stateRef(roomId), (s) => { model.state = s.exists() ? s.data() : null; emit(); }, errors),
