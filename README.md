@@ -17,7 +17,7 @@ npm run emulators      # Auth(9099) / Firestore(8080) のエミュレータ（Ja
 npm run dev            # http://127.0.0.1:5173/
 npm test               # ルール判定の単体テスト
 npm run test:rules     # セキュリティルールのテスト（エミュレータ起動中に実行）
-npm run test:e2e       # 3人対戦の通しテスト（エミュレータと dev サーバー起動中に実行。playwright が必要）
+npm run test:e2e       # 3人対戦の通しテスト（途中終了は node tests-e2e/abort-game.mjs）（エミュレータと dev サーバー起動中に実行。playwright が必要）
 ```
 
 開発中は自動でエミュレータに接続する。本番接続は `.env.example` を参考に `VITE_FIREBASE_*` を設定する。

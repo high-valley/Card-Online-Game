@@ -57,5 +57,6 @@ export function gameScreen({ app, model, actions }) {
       { class: 'hand' },
       sorted.map((c) => cardView(c, { selected: app.selected.has(c), onClick: mine ? () => actions.toggleCard(c) : undefined })),
     ),
+    isHost && h('button', { class: 'link end-game', disabled: app.busy, onClick: () => actions.endGame() }, 'ゲームを終了'),
   );
 }

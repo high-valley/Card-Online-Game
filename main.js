@@ -59,7 +59,15 @@ function enter(roomId) {
   app.notice = '';
   app.selected.clear();
   history.replaceState(null, '', `?room=${roomId}`);
+  let prevStatus = null;
   unsubscribe = subscribeRoom(roomId, app.uid, (model) => {
+    const status = model.room?.status;
+    // ゲーム中に待機へ戻ったら、ホストが途中で終了したということ
+    if (prevStatus === 'playing' && status === 'waiting') {
+      app.notice = model.room.hostUid === app.uid ? '' : 'ホストがゲームを終了しました';
+      app.selected.clear();
+    }
+    if (status) prevStatus = status;
     app.model = model;
     render();
   });
@@ -139,6 +147,10 @@ const actions = {
   changeGame: (gameId) => run(() => changeGame(app.roomId, gameId)),
   setOptions: (options) => setOptions(app.roomId, options),
   backToLobby: () => run(() => backToLobby(app.roomId)),
+  endGame() {
+    if (!confirm('ゲームを途中で終了して、全員を待機画面に戻します。今回の結果は記録されません。よろしいですか？')) return;
+    return run(() => backToLobby(app.roomId));
+  },
   async leave() {
     const status = app.model?.room?.status;
     // ゲーム中は参加者のまま画面だけ閉じる（招待URLを開き直せば戻れる）

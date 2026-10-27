@@ -42,3 +42,4 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 @media (max-width: 480px) { .card { width: 46px; height: 66px; } }
 
 .result { width: 100%; border-collapse: collapse; } .result th, .result td { padding: 8px; text-align: left; border-bottom: 1px solid #fff2; } .result tr.me { background: #ffd54a33; }
+.end-game { align-self: center; margin-top: 8px; }
