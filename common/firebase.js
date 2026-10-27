@@ -11,7 +11,8 @@ const app = initializeApp({
 });
 
 export const auth = getAuth(app);
-export const db = initializeFirestore(app, { ignoreUndefinedProperties: true });
+// 常時接続（WebChannel）が途中で切られる回線・プロキシでは、自動でロングポーリングに切り替える
+export const db = initializeFirestore(app, { ignoreUndefinedProperties: true, experimentalAutoDetectLongPolling: true });
 
 // 開発中（または VITE_USE_EMULATOR=true）は Firebase Emulator に接続する
 if (env.DEV || env.VITE_USE_EMULATOR === 'true') {
