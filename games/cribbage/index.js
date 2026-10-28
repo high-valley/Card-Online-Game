@@ -1,6 +1,7 @@
 import { Board } from './Board.js';
 import { CPU_LEVELS, createCpu } from './cpu.js';
 import { ResultDetail } from './ResultDetail.js';
+import { rulebook } from './rulebook.js';
 import { DECK_SPEC, applyAction, canPlay, deal, defaultOptions, getResult, sortHand } from './rules.js';
 import { valueOf } from './scoring.js';
 
@@ -42,6 +43,7 @@ export default {
   sortHand,
   Board,
   ResultDetail,
+  rulebook,
   logText,
   soundFor: (entry) => (entry.type === 'play' ? (entry.points > 0 ? 'special' : 'card') : entry.type === 'discard' ? 'discard' : entry.type === 'go' ? 'pass' : entry.type === 'show' ? (entry.points > 0 ? 'special' : null) : null),
   cpu: { levels: CPU_LEVELS, create: createCpu },

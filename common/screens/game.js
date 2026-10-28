@@ -43,7 +43,7 @@ export function gameScreen({ app, model, actions }) {
     groups.map((group) =>
       h('span', { class: 'hand-group' }, group.map((c) => {
         const dim = mine && !!mod.dimCard?.(g, hand, c, uid);
-        return cardView(c, { selected: app.selected.has(c), dim, anim: 'pop', key: `hand:${c}`, onClick: mine && !dim ? () => actions.toggleCard(c) : undefined });
+        return cardView(c, { selected: app.selected.has(c), fresh: app.fresh.has(c), dim, anim: 'pop', key: `hand:${c}`, onClick: mine && !dim ? () => actions.toggleCard(c) : undefined });
       })),
     ),
   );
@@ -71,7 +71,7 @@ export function gameScreen({ app, model, actions }) {
     ),
     stale && isHost && h('div', { class: 'skip' }, `${turnPlayer.name} の応答がありません `, h('button', { disabled: app.busy, onClick: () => actions.skip() }, 'スキップ')),
     mod.Board({
-      game: g, hand, uid, selected, names, busy: app.busy,
+      game: g, hand, uid, selected, names, busy: app.busy, fresh: [...app.fresh], log: state.log,
       onAction: (action) => actions.act(action),
     }),
     app.notice && h('p', { class: 'notice' }, app.notice),
@@ -81,6 +81,7 @@ export function gameScreen({ app, model, actions }) {
       'div',
       { class: 'hand-tools' },
       h('button', { class: 'link', disabled: !app.handOrder, onClick: () => actions.autoSort() }, '自動整列'),
+      mod.rulebook && h('button', { class: 'link', onClick: () => actions.showRules(room.gameId, g.options) }, 'ルール'),
       h('button', { class: 'link', 'aria-pressed': String(!isMuted()), onClick: () => actions.toggleSound() }, isMuted() ? '効果音 OFF' : '効果音 ON'),
     ),
     isHost && h('button', { class: 'link end-game', disabled: app.busy, onClick: () => actions.endGame() }, 'ゲームを終了'),

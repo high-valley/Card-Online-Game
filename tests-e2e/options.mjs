@@ -39,6 +39,11 @@ for (const p of [a, b]) await p.waitForFunction(() => !document.querySelector('i
 ok(!(await checked(a, 'revolution')) && (await checked(a, 'lock')), '設定の変更がほかの参加者の画面に反映される');
 ok(!(await checked(b, 'revolution')) && (await checked(b, 'lock')), '3人目の画面にも反映される');
 
+// ルームのルールブックには、このルームの設定が載る（革命OFF・しばりON）
+await a.click('button:has-text("ルールを見る")');
+const rb = await a.locator('.modal').innerText();
+ok(rb.includes('【OFF】革命') && rb.includes('【ON】しばり'), 'ルールブックに、このルームの設定が載る');
+await a.click('.modal .close');
 await host.click('button:has-text("ゲーム開始")');
 await Promise.all(pages.map((p) => p.waitForSelector('.board')));
 if (!process.env.APP_URL) {

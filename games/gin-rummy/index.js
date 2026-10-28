@@ -1,6 +1,7 @@
 import { Board } from './Board.js';
 import { CPU_LEVELS, createCpu } from './cpu.js';
 import { ResultDetail } from './ResultDetail.js';
+import { rulebook } from './rulebook.js';
 import { bestArrangement, byCard } from './melds.js';
 import { DECK_SPEC, applyAction, autoAction, canPlay, deal, defaultOptions, getResult, sortHand } from './rules.js';
 
@@ -46,6 +47,7 @@ export default {
   },
   Board,
   ResultDetail,
+  rulebook,
   logText,
   cpu: { levels: CPU_LEVELS, create: createCpu },
   playerStatus: (game, player) => ({ text: `${player.handCount}枚 ／ ${game.scores[player.uid] ?? 0}点`, out: false }),

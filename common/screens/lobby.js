@@ -14,6 +14,7 @@ export function lobbyScreen({ app, model, actions }) {
     { class: 'screen' },
     h('h1', null, game.name),
     h('p', { class: 'sub' }, `${game.minPlayers}〜${game.maxPlayers}人 ／ ルームコード `, h('strong', null, room.code)),
+    game.rulebook && h('button', { class: 'link rules-link', onClick: () => actions.showRules(room.gameId, room.options) }, 'ルールを見る'),
     h('div', { class: 'invite' }, h('input', { type: 'text', readOnly: true, value: url, onFocus: (e) => e.target.select() }), h('button', { onClick: () => actions.copy(url) }, app.copied ? 'コピーしました' : '招待URLをコピー')),
     h('h2', null, `参加者（${players.length}/${game.maxPlayers}）`),
     h(

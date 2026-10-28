@@ -46,6 +46,7 @@ export function topScreen({ app, actions, invite }) {
           h('div', null, h('strong', null, g.name), h('span', { class: 'sub' }, ` ${g.minPlayers}〜${g.maxPlayers}人`), h('p', { class: 'sub' }, g.description)),
           h('button', { class: 'primary', disabled: app.busy, onClick: () => actions.createRoom(g.id) }, 'ルームを作る'),
           g.cpu && cpuRow(g, actions),
+          g.rulebook && h('button', { class: 'link', onClick: () => actions.showRules(g.id, g.defaultOptions) }, 'ルールを見る'),
         ),
       ),
     ),

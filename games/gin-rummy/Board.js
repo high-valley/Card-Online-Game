@@ -2,6 +2,7 @@ import { cardView } from '../../common/ui/cards.js';
 import { h } from '../../common/ui/h.js';
 import { deadwoodOf } from './melds.js';
 import { canPlay } from './rules.js';
+import { showCard, summarizeOpponentTurn } from './turnSummary.js';
 
 const REASONS = {
   'same-card': '取った捨て札はそのターンに捨てられません',
@@ -17,7 +18,7 @@ const back = (label, { onClick, disabled }) =>
 const bestAfterDiscard = (hand) => Math.min(...hand.map((c) => deadwoodOf(hand.filter((x) => x !== c))));
 
 /** ジン・ラミーのゲーム画面中央：山札・捨て札・操作ボタン */
-export function Board({ game, hand, uid, selected, names, onAction, busy }) {
+export function Board({ game, hand, uid, selected, names, onAction, busy, fresh = [], log = [] }) {
   const mine = game.turnUid === uid;
   const check = (a) => (mine ? canPlay(game, hand, { ...a, uid }) : { ok: false });
   const phase = game.phase;
@@ -33,12 +34,17 @@ export function Board({ game, hand, uid, selected, names, onAction, busy }) {
 
   const dw = hand.length === 10 ? deadwoodOf(hand) : hand.length === 11 ? bestAfterDiscard(hand) : null;
 
+  // いま引いたカード：捨て札から取ったなら公開されているカード、山札なら手札に増えたカード
+  const drawnCard = mine && phase === 'WAITING_FOR_DISCARD' ? (game.lastDraw?.card ?? fresh[0] ?? null) : null;
+  const fromDiscard = game.lastDraw?.source === 'discard';
+  const oppMove = summarizeOpponentTurn(log, uid, names);
+
   let hint = '';
   if (!mine) hint = game.turnUid ? `${names[game.turnUid] ?? '?'} の番です` : '';
   else if (phase === 'INITIAL_OFFER') hint = '最初の公開カードを取りますか？';
   else if (phase === 'WAITING_FOR_DRAW') hint = '山札か捨て札をタップして1枚引きます';
   else if (phase === 'WAITING_FOR_DISCARD')
-    hint = !card ? '捨てるカードを選んでください' : (REASONS[discard.reason] ?? (!knock.ok && !gin.ok ? REASONS[knock.reason] ?? '' : ''));
+    hint = !card ? `${drawnCard ? `${fromDiscard ? '捨て札から' : '山札から'}${showCard(drawnCard)}を引きました。` : ''}捨てるカードを選んでください` : (REASONS[discard.reason] ?? (!knock.ok && !gin.ok ? REASONS[knock.reason] ?? '' : ''));
   if (phase === 'SHOWDOWN') hint = mine ? '手札を公開しています…' : `${names[game.knock.uid]} が${game.knock.type === 'gin' ? 'ジン' : 'ノック'}しました。相手の公開を待っています`;
 
   const k = game.knock;
@@ -62,6 +68,17 @@ export function Board({ game, hand, uid, selected, names, onAction, busy }) {
         h('div', { class: 'sub' }, '捨て札'),
       ),
     ),
+    oppMove &&
+      h(
+        'div',
+        { class: 'opp-move' },
+        h('strong', null, oppMove.who),
+        h('span', null, oppMove.text),
+        oppMove.taken && cardView(oppMove.taken, { small: true }),
+        oppMove.thrown && cardView(oppMove.thrown, { small: true }),
+      ),
+    drawnCard &&
+      h('div', { class: 'drawn' }, h('strong', null, 'いま引いたカード'), cardView(drawnCard, { small: true, fresh: true }), h('span', { class: 'sub' }, fromDiscard ? '捨て札から' : '山札から')),
     k &&
       h(
         'div',

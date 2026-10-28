@@ -56,6 +56,7 @@
  * @property {(game: Object, action: Object, ctx?: {hand: CardId[]|null, deck: CardId[]|null}) => ApplyResult} applyAction  ctx は非公開の手札・山札
  * @property {(game: Object) => GameResult} getResult
  * @property {(hand: CardId[], game: Object) => CardId[]} sortHand  手札の並び順
+ * @property {(options: Object) => {title: string, paras?: string[], list?: string[]}[]} [rulebook]  ルールブックの内容（いつでも開ける）。options はそのルームの設定
  * @property {(hand: CardId[], game: Object) => CardId[][]} [handGroups]  自動整列のときに、間をあけて表示するまとまり（役ごとなど）
  * @property {(entry: Object, uid: string) => string|null} [soundFor]  操作ログ1件に鳴らす効果音の名前（省略時は共通の対応）
  * @property {(props: {options: Object, onChange: (patch: Object) => void, readOnly: boolean}) => HTMLElement} [OptionsForm]  待機画面のルール設定フォーム。readOnly のときはホスト以外向けの表示だけ
