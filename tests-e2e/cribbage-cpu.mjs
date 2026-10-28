@@ -36,9 +36,9 @@ while (Date.now() < deadline && !(await p.locator('.crib-result').count())) {
   const n = await p.locator('.hand .card').count();
   if (await btn('クリブに置く').count()) {
     const cards = p.locator('.hand .card');
-    await cards.nth(0).click();
-    await cards.nth(1).click();
-    await cards.nth(2).click(); // 3枚目を選ぶと、古い選択が外れて常に2枚になる
+    await cards.nth(0).click({ position: { x: 7, y: 24 } });
+    await cards.nth(1).click({ position: { x: 7, y: 24 } });
+    await cards.nth(2).click({ position: { x: 7, y: 24 } }); // 3枚目を選ぶと、古い選択が外れて常に2枚になる
     ok((await p.locator('.hand .card.selected').count()) === 2, '選べるのは2枚まで');
     ok(await enabled('クリブに置く'), '2枚選ぶと「クリブに置く」が押せる');
     shotDone.discard || (await shot('1-discard'), (shotDone.discard = 1));
@@ -52,7 +52,7 @@ while (Date.now() < deadline && !(await p.locator('.crib-result').count())) {
       await btn('Go').click();
       count('go');
     } else {
-      await live.first().click();
+      await live.first().click({ position: { x: 7, y: 24 } });
       await btn('出す').click();
       count('play');
       shotDone.peg || n < 4 || (await shot('3-pegging'), (shotDone.peg = 1));
