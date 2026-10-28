@@ -1,4 +1,5 @@
 import { Board } from './Board.js';
+import { CPU_LEVELS, createCpu } from './cpu.js';
 import { OptionsForm } from './OptionsForm.js';
 import { rulebook } from './rulebook.js';
 import { DECK_SPEC, applyAction, canPlay, deal, defaultOptions, getResult, sortHand } from './rules.js';
@@ -15,7 +16,7 @@ export default {
   name: '大富豪',
   minPlayers: 3,
   maxPlayers: 5,
-  description: 'ジョーカー入り53枚。革命・8切りなどの特殊ルール対応',
+  description: 'ジョーカー入り53枚。革命・8切りなどの特殊ルール対応（CPU対戦あり）',
   deck: DECK_SPEC,
   defaultOptions,
   deal,
@@ -25,6 +26,7 @@ export default {
   sortHand,
   Board,
   playerStatus,
+  cpu: { levels: CPU_LEVELS, opponents: 3, create: createCpu },
   OptionsForm,
   rulebook,
 };

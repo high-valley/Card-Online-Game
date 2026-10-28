@@ -32,6 +32,18 @@ npm run test:e2e       # 3人対戦（大富豪）の通しテスト（途中終
 4. GitHub の Settings → Secrets and variables → Actions → **Variables** に `VITE_FIREBASE_API_KEY` / `VITE_FIREBASE_AUTH_DOMAIN` / `VITE_FIREBASE_PROJECT_ID` / `VITE_FIREBASE_APP_ID` を登録する（Web 用の設定値は公開されても問題ない。守っているのはセキュリティルール）
 5. Settings → Pages → Source を **GitHub Actions** にする
 
+## 大富豪
+
+3〜5人。`games/daifugo/`（`rules.js` 役の判定と進行、`cpu.js` CPU）。
+
+トップ画面の大富豪の欄から、強さ（かんたん／ふつう／つよい）を選んで、CPU3人と1人で遊べる（ブラウザの中だけで進む）。
+CPU は自分の手札と公開情報（場・残り枚数・革命・しばり）だけで判断する。かんたんはほぼランダム、ふつうは弱い札からまとめて出して強い札を温存し、つよいは革命の損得・上がり間際の相手・出し切るまでの手数も見る。反則上がり（ジョーカー・2・8切りの8で上がる）は、どの難易度でも避けようとする。
+
+```
+LEVEL=hard node tests-e2e/daifugo-cpu.mjs   # CPU対戦（easy / normal / hard）を1ゲーム通す
+node tools/daifugo-bench.mjs 400            # CPUの強さ比べ（4人卓で1人だけ強さを変えて、平均順位点を表示）
+```
+
 ## ジン・ラミー
 
 2人対戦。`games/gin-rummy/`（`melds.js` 役とデッドウッド・レイオフの計算、`rules.js` 進行と得点）。
@@ -49,7 +61,7 @@ node tools/cpu-bench.mjs 400   # CPUの強さ比べ（難易度どうしを対�
 
 トップ画面のジン・ラミーの欄から、強さ（かんたん／ふつう／つよい）を選んで1人で始める。Firebase は使わず、ブラウザの中だけで進む（`common/localMatch.js`）。
 CPU（`games/gin-rummy/cpu.js`）は、自分の手札と公開情報、相手の公開された行動だけで判断し、山札や人間の手札は参照しない。
-別のゲームでも、モジュールに `cpu: { levels, create }` を持たせればCPU対戦の欄が出る。
+別のゲームでも、モジュールに `cpu: { levels, create }` を持たせればCPU対戦の欄が出る（3人以上のゲームは `opponents` でCPUの人数を指定する）。
 
 ## クリベッジ
 
