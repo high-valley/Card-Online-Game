@@ -29,6 +29,7 @@ const app = {
 let unsubscribe = null;
 /** CPU対戦中のローカル対戦（なければ null） */
 let local = null;
+let toastTimer = null;
 let timers = [];
 const root = document.getElementById('app');
 if (import.meta.env.DEV) window.__app = app; // 開発中のテスト・調査用
@@ -301,6 +302,13 @@ const actions = {
     if (status !== 'playing' && status !== 'dealing') await leaveRoom(app.roomId, app.uid).catch(() => {});
     detach();
     render();
+  },
+  /** 一時的なメッセージ（操作できない理由など）。数秒で消える */
+  toast(text) {
+    app.notice = text;
+    render();
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { if (app.notice === text) { app.notice = ''; render(); } }, 2800);
   },
   showRules(gameId, options) { showRulebook(getGame(gameId), options); },
   // 手札の並べ替え・効果音

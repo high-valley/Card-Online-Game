@@ -47,10 +47,10 @@ async function tryMove(p) {
   const n = await p.locator('.hand .card').count();
   for (let i = 0; i < n; i++) {
     const c = p.locator('.hand .card').nth(i);
-    await c.click();
+    await c.click({ position: { x: 7, y: 24 } }); // 重なった手札の、見えている左端
     const play = p.locator('.actions .primary');
     if (await play.isEnabled()) { await play.click(); return true; }
-    await p.locator('.hand .card').nth(i).click();
+    await p.locator('.hand .card').nth(i).click({ position: { x: 7, y: 24 } });
   }
   const pass = p.locator('.actions button', { hasText: 'パス' });
   if (await pass.isEnabled()) { await pass.click(); return true; }

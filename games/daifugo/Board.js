@@ -2,16 +2,9 @@ import { cardView, suitMark } from '../../common/ui/cards.js';
 import { h } from '../../common/ui/h.js';
 import { canPlay } from './rules.js';
 
-const REASONS = {
-  'not-your-turn': '',
-  'no-cards': 'カードを選んでください',
-  'invalid-combo': 'その組み合わせは出せません',
-  'shape-mismatch': '場と同じ形（枚数・種類）で出してください',
-  'too-weak': '場より強いカードを出してください',
-  locked: 'しばり中：同じスートだけ出せます',
-  'sequence-disabled': '階段は使えません',
-  'cannot-pass-lead': '最初の人はパスできません',
-};
+import { REASON_TEXT } from './messages.js';
+
+const REASONS = { ...REASON_TEXT, 'not-your-turn': '' };
 
 /**
  * 大富豪のゲーム画面中央（場・状態表示・操作ボタン）。
@@ -41,7 +34,7 @@ export function Board({ game, hand, uid, selected, names, onAction, busy }) {
     h('div', { class: 'badges' }, badges),
     h(
       'div',
-      { class: 'field' },
+      { class: 'field', 'data-drop': 'field', 'data-accepts': 'hand' },
       f
         ? [h('div', { class: 'field-cards' }, f.cards.map((c) => cardView(c, { anim: 'drop', key: `field:${c}` }))), h('div', { class: 'field-by' }, `${names[f.uid] ?? '?'} が出しました`)]
         : h('div', { class: 'field-empty' }, '場は空です'),

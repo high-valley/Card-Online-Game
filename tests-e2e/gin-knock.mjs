@@ -66,7 +66,7 @@ ok(true, '「いま引いたカード」欄に K♦ が出る');
 ok((await first.locator('.board .hint').innerText()).includes('山札から♦Kを引きました'), 'ヒントに「山札から♦Kを引きました」と出る');
 await second.waitForSelector('.opp-move');
 ok((await second.locator('.opp-move span').innerText()) === '山札から1枚引きました', '相手の画面には、引いたカードは出さず「山札から1枚引きました」だけが出る');
-await first.locator('.hand .card', { has: first.locator('.rank', { hasText: /^K$/ }) }).filter({ hasText: '♦' }).click();
+await first.locator('.hand .card[data-id="DK"]').click({ position: { x: 7, y: 24 } });
 ok(await first.locator('.actions button:has-text("ノック")').isEnabled(), 'デッドウッド4点なのでノックできる');
 ok(!(await first.locator('.actions button:has-text("ジン")').isEnabled()), '4点なのでジンはできない');
 await first.click('.actions button:has-text("ノック")');

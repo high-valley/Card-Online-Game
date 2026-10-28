@@ -40,6 +40,8 @@ npm run test:e2e       # 3人対戦（大富豪）の通しテスト（途中終
 ```
 node tests-e2e/gin-rummy.mjs   # 2人で山札切れまで通す
 node tests-e2e/gin-knock.mjs   # 決まった手札でノック→手札公開→得点まで通す
+node tests-e2e/dnd-gin.mjs     # ドラッグ＆ドロップ（ジン・ラミーのCPU対戦）
+node tests-e2e/dnd-daifugo.mjs # ドラッグ＆ドロップ（大富豪・3人）
 node tests-e2e/gin-ui.mjs      # 手札のドラッグ並べ替え・自動整列・効果音の切り替え・アニメーション
 LEVEL=hard node tests-e2e/gin-cpu.mjs   # CPU対戦（easy / normal / hard）を1ラウンド通す
 node tools/cpu-bench.mjs 400   # CPUの強さ比べ（難易度どうしを対戦させて勝率・得点差を表示）

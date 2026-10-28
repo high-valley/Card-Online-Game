@@ -32,6 +32,7 @@ export function topScreen({ app, actions, invite }) {
   return h(
     'main',
     { class: 'screen' },
+    h('div', { class: 'brand-logo', 'aria-hidden': 'true' }, h('span', null, '♠'), h('span', { class: 'red' }, '♥'), h('span', { class: 'red' }, '♦'), h('span', null, '♣')),
     h('h1', null, 'オンライントランプ'),
     nameField,
     notice,
@@ -43,7 +44,12 @@ export function topScreen({ app, actions, invite }) {
         h(
           'li',
           null,
-          h('div', null, h('strong', null, g.name), h('span', { class: 'sub' }, ` ${g.minPlayers}〜${g.maxPlayers}人`), h('p', { class: 'sub' }, g.description)),
+          h(
+            'div',
+            { class: 'game-info' },
+            g.emblem && h('span', { class: `emblem${g.emblem.red ? ' red' : ''}`, 'aria-hidden': 'true' }, g.emblem.mark),
+            h('div', null, h('strong', null, g.name), h('span', { class: 'sub' }, ` ${g.minPlayers === g.maxPlayers ? g.minPlayers : `${g.minPlayers}〜${g.maxPlayers}`}人`), h('p', { class: 'sub' }, g.description)),
+          ),
           h('button', { class: 'primary', disabled: app.busy, onClick: () => actions.createRoom(g.id) }, 'ルームを作る'),
           g.cpu && cpuRow(g, actions),
           g.rulebook && h('button', { class: 'link', onClick: () => actions.showRules(g.id, g.defaultOptions) }, 'ルールを見る'),
