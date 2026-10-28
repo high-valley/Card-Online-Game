@@ -16,7 +16,7 @@ const ok = (c, msg) => { if (!c) throw new Error(`FAIL: ${msg}`); console.log(`o
 
 await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
-ok((await p.locator('li:has-text("大富豪") .cpu-row').count()) === 0, '大富豪にはCPU対戦の欄が出ない');
+ok((await p.locator('li:has-text("大富豪") .cpu-row').count()) === 1, '大富豪にもCPU対戦の欄が出る');
 await p.selectOption('li:has-text("ジン・ラミー") .cpu-row select', LEVEL);
 await p.click('li:has-text("ジン・ラミー") button:has-text("CPUと対戦")');
 await p.waitForSelector('.board.gin');

@@ -1,4 +1,5 @@
 import { Board } from './Board.js';
+import { CPU_LEVELS, createCpu } from './cpu.js';
 import { OptionsForm } from './OptionsForm.js';
 import { reasonText } from './messages.js';
 import { rulebook } from './rulebook.js';
@@ -17,7 +18,7 @@ export default {
   emblem: { mark: '♠', red: false },
   minPlayers: 3,
   maxPlayers: 5,
-  description: 'ジョーカー入り53枚。革命・8切りなどの特殊ルール対応',
+  description: 'ジョーカー入り53枚。革命・8切りなどの特殊ルール対応（CPU対戦あり）',
   deck: DECK_SPEC,
   defaultOptions,
   deal,
@@ -35,6 +36,7 @@ export default {
     const checked = canPlay(game, hand, action);
     return checked.ok ? { action } : { error: reasonText(checked.reason) };
   },
+  cpu: { levels: CPU_LEVELS, opponents: 3, create: createCpu },
   OptionsForm,
   rulebook,
 };

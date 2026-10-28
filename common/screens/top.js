@@ -5,7 +5,7 @@ import { isMuted } from '../ui/sound.js';
 /** CPU対戦（そのゲームがCPUに対応しているときだけ）：難易度を選んで、1人で始める */
 function cpuRow(g, actions) {
   const level = h('select', { 'aria-label': 'CPUの強さ' }, g.cpu.levels.map((l) => h('option', { value: l.id, selected: l.id === 'normal' }, l.label)));
-  return h('div', { class: 'cpu-row' }, h('span', { class: 'sub' }, 'CPU対戦'), level, h('button', { onClick: () => actions.startCpu(g.id, level.value) }, 'CPUと対戦'));
+  return h('div', { class: 'cpu-row' }, h('span', { class: 'sub' }, 'CPU対戦'), level, h('button', { onClick: () => actions.startCpu(g.id, level.value) }, g.cpu.opponents > 1 ? `CPU${g.cpu.opponents}人と対戦` : 'CPUと対戦'));
 }
 
 /** トップ画面：ニックネーム、ゲーム一覧、コードで参加。invite があれば招待URLからの参加画面になる */

@@ -1,11 +1,11 @@
 /**
- * 人間1人 ＋ CPU のローカル対戦。Firebase を使わず、ブラウザの中だけで進める。
+ * 人間1人 ＋ CPU（mod.cpu.opponents 人。既定1人）のローカル対戦。Firebase を使わず、ブラウザの中だけで進める。
  * オンライン対戦（engine.js）と同じ「ゲームモジュールの約束事」（deal・canPlay・applyAction・getResult・autoAction）で動くので、
  * ゲーム画面・結果画面・Board をそのまま使える。
  *
  * CPU には、自分の手札と公開情報（game）、相手の公開された行動（observe）だけを渡す。山札や人間の手札は渡さない。
  */
-const CPU_UID = 'cpu';
+const cpuUid = (i, total) => (total === 1 ? 'cpu' : `cpu${i + 1}`);
 const LOG_LIMIT = 20;
 
 /**
@@ -14,12 +14,17 @@ const LOG_LIMIT = 20;
  */
 export function createLocalMatch({ mod, level, humanUid, humanName, onChange, random = Math.random, think = true }) {
   const levelInfo = mod.cpu.levels.find((l) => l.id === level) ?? mod.cpu.levels[0];
-  const cpu = mod.cpu.create(levelInfo.id, CPU_UID, random);
+  const total = mod.cpu.opponents ?? 1;
+  const cpus = Array.from({ length: total }, (_, i) => {
+    const uid = cpuUid(i, total);
+    return { uid, impl: mod.cpu.create(levelInfo.id, uid, random), name: total === 1 ? `CPU（${levelInfo.label}）` : `CPU${i + 1}（${levelInfo.label}）` };
+  });
+  const cpuOf = (uid) => cpus.find((c) => c.uid === uid);
   const players = [
     { uid: humanUid, name: humanName, seat: 0, handCount: 0, totalPoints: {}, lastSeen: null },
-    { uid: CPU_UID, name: `CPU（${levelInfo.label}）`, seat: 1, handCount: 0, totalPoints: {}, lastSeen: null },
+    ...cpus.map((c, i) => ({ uid: c.uid, name: c.name, seat: i + 1, handCount: 0, totalPoints: {}, lastSeen: null })),
   ];
-  const room = { code: '', gameId: mod.id, hostUid: humanUid, status: 'waiting', options: mod.defaultOptions, members: [humanUid, CPU_UID] };
+  const room = { code: '', gameId: mod.id, hostUid: humanUid, status: 'waiting', options: mod.defaultOptions, members: players.map((p) => p.uid) };
   let state = null;
   let hands = {};
   let deck = null;
@@ -64,7 +69,7 @@ export function createLocalMatch({ mod, level, humanUid, humanName, onChange, ra
       room.status = 'finished';
       for (const p of players) p.totalPoints[mod.id] = (p.totalPoints[mod.id] ?? 0) + (result.points[p.uid] ?? 0);
     }
-    cpu.observe(applied.log, applied.game);
+    for (const c of cpus) c.impl.observe(applied.log, applied.game);
     emit();
     schedule();
   }
@@ -74,13 +79,15 @@ export function createLocalMatch({ mod, level, humanUid, humanName, onChange, ra
     clearTimeout(timer);
     if (stopped || room.status !== 'playing') return;
     const game = state.game;
-    const auto = mod.autoAction?.(game, CPU_UID);
-    if (!auto && game.turnUid !== CPU_UID) return;
+    const autoCpu = cpus.find((c) => mod.autoAction?.(game, c.uid));
+    const actor = autoCpu ?? cpuOf(game.turnUid);
+    if (!actor) return;
+    const auto = autoCpu ? mod.autoAction(game, actor.uid) : null;
     const wait = !think ? 0 : auto ? 300 : 700 + random() * 900;
     timer = setTimeout(() => {
       if (stopped || room.status !== 'playing') return;
       try {
-        apply(CPU_UID, auto ?? cpu.decide(game, hands[CPU_UID]));
+        apply(actor.uid, auto ?? actor.impl.decide(game, hands[actor.uid]));
       } catch (e) {
         console.error('CPU turn failed', e);
       }
@@ -105,7 +112,7 @@ export function createLocalMatch({ mod, level, humanUid, humanName, onChange, ra
         game: dealt.game,
       };
       room.status = 'playing';
-      cpu.reset();
+      for (const c of cpus) c.impl.reset();
       emit();
       schedule();
     },
