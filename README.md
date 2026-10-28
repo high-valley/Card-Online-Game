@@ -5,7 +5,7 @@
 ## 構成
 
 - `common/` … ルーム・ログイン・手番進行・共通画面（特定のゲームは知らない）
-- `games/daifugo/`（大富豪）、`games/gin-rummy/`（ジン・ラミー）… ゲームモジュール（`rules.js` ＋ `Board.js` ＋ テスト）。`games/index.js` に登録するだけで一覧に出る
+- `games/daifugo/`（大富豪）、`games/gin-rummy/`（ジン・ラミー）、`games/cribbage/`（クリベッジ）… ゲームモジュール（`rules.js` ＋ `Board.js` ＋ テスト）。`games/index.js` に登録するだけで一覧に出る
 - `common/types.js` … ゲームモジュールの約束事（JSDoc）
 - `firestore.rules` … セキュリティルール（`cards_*` コレクション）
 
@@ -50,3 +50,20 @@ node tools/cpu-bench.mjs 400   # CPUの強さ比べ（難易度どうしを対�
 トップ画面のジン・ラミーの欄から、強さ（かんたん／ふつう／つよい）を選んで1人で始める。Firebase は使わず、ブラウザの中だけで進む（`common/localMatch.js`）。
 CPU（`games/gin-rummy/cpu.js`）は、自分の手札と公開情報、相手の公開された行動だけで判断し、山札や人間の手札は参照しない。
 別のゲームでも、モジュールに `cpu: { levels, create }` を持たせればCPU対戦の欄が出る。
+
+## クリベッジ
+
+2人対戦・121点先取。`games/cribbage/`（`scoring.js` 手札・クリブ・ペギングの採点、`rules.js` 進行と得点イベント、`cpu.js` CPU）。
+マギンズ（採点漏れの指摘）は初期版では対象外で、採点はすべて自動。
+
+- クリブとスターター以外の山札は、非公開の山札欄に `[...クリブ, ...山札]` の順で保存する（`rules.js` 冒頭のコメント参照）。ペギングで出した札は公開情報（`game.peg.played`）に残し、それがそのまま手札採点の4枚になる
+- 得点は `game.scoreEvents`（eventId・playerId・type・points・previousScore・newScore）に1件ずつ記録し、121点に届いた時点でそれ以降の加算を止める
+- Go は人間は「Go」ボタンで宣言する（出せる札があるときは宣言できない）。CPU は自動で宣言する
+
+```
+node tests-e2e/cribbage.mjs      # 2人で1ラウンド（クリブ・ペギング・採点）を通す
+LEVEL=hard node tests-e2e/cribbage-cpu.mjs   # CPU対戦（easy / normal / hard）を1ラウンド通す。SHOTS=ディレクトリ で画面を保存
+node tools/cribbage-bench.mjs 200            # CPUの強さ比べ
+```
+
+CPU は自分の手札・スターター・公開された出札・自分が置いたクリブの札だけで判断する（`games/cribbage/cpu.js`）。

@@ -289,6 +289,9 @@ const actions = {
     const wasSelected = app.selected.delete(id);
     if (mod.selection === 'single') app.selected.clear(); // 1枚だけ選ぶゲーム
     if (!wasSelected) app.selected.add(id);
+    // 選べる枚数に上限があるゲームは、超えた分を古い選択から外す
+    const limit = mod.selectLimit?.(app.model.state.game, app.uid);
+    while (limit && app.selected.size > limit) app.selected.delete(app.selected.values().next().value);
     render();
   },
   act(action) {

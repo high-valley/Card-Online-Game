@@ -41,7 +41,10 @@ export function gameScreen({ app, model, actions }) {
     'div',
     { class: 'hand' },
     groups.map((group) =>
-      h('span', { class: 'hand-group' }, group.map((c) => cardView(c, { selected: app.selected.has(c), anim: 'pop', key: `hand:${c}`, onClick: mine ? () => actions.toggleCard(c) : undefined }))),
+      h('span', { class: 'hand-group' }, group.map((c) => {
+        const dim = mine && !!mod.dimCard?.(g, hand, c, uid);
+        return cardView(c, { selected: app.selected.has(c), dim, anim: 'pop', key: `hand:${c}`, onClick: mine && !dim ? () => actions.toggleCard(c) : undefined });
+      })),
     ),
   );
   enableHandDrag(handEl, {

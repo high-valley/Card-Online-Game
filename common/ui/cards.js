@@ -3,14 +3,14 @@ import { h } from './h.js';
 const SUIT_MARK = { S: '♠', H: '♥', D: '♦', C: '♣' };
 
 /** カード1枚の表示部品。全ゲーム共通。onClick を渡すと手札として選べる */
-export function cardView(id, { selected = false, small = false, onClick, anim, key } = {}) {
+export function cardView(id, { selected = false, small = false, dim = false, onClick, anim, key } = {}) {
   const joker = id.startsWith('JK');
   const red = id[0] === 'H' || id[0] === 'D';
   return h(
     'button',
     {
       type: 'button',
-      class: `card${joker ? ' joker' : red ? ' red' : ''}${selected ? ' selected' : ''}${small ? ' small' : ''}`,
+      class: `card${joker ? ' joker' : red ? ' red' : ''}${selected ? ' selected' : ''}${small ? ' small' : ''}${dim ? ' dim' : ''}`,
       // 選べないカードも、手札の並べ替え（ドラッグ）はできるように disabled にはしない
       'aria-disabled': onClick ? null : 'true',
       tabindex: onClick ? null : '-1',
