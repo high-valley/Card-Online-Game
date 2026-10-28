@@ -29,6 +29,7 @@ export function resultScreen({ app, model, actions }) {
       ),
     ),
     mod.ResultDetail?.({ result, names, uid, game: state.game }),
+    mod.rulebook && h('button', { class: 'link', onClick: () => actions.showRules(room.gameId, state.game?.options) }, 'ルールを見る'),
     app.notice && h('p', { class: 'notice' }, app.notice),
     isHost
       ? [

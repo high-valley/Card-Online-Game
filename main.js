@@ -9,6 +9,7 @@ import { gameScreen } from './common/screens/game.js';
 import { lobbyScreen } from './common/screens/lobby.js';
 import { resultScreen } from './common/screens/result.js';
 import { topScreen } from './common/screens/top.js';
+import { closeRulebook, showRulebook } from './common/ui/rulebook.js';
 import { play, setMuted, isMuted, soundForEntry, unlockAudio } from './common/ui/sound.js';
 import { getGame } from './games/index.js';
 import './style.css';
@@ -23,6 +24,7 @@ const app = {
   uid: null, name: store.get(), roomId: null, model: null, invite: null, notice: '', busy: false, copied: false, selected: new Set(),
   handOrder: null, // ドラッグで並べ替えた手札の順（null なら自動整列）
   dragging: false, // ドラッグ中は画面を作り直さない
+  fresh: new Set(), // 直前に手札に増えたカード（引いたカード）
 };
 let unsubscribe = null;
 /** CPU対戦中のローカル対戦（なければ null） */
@@ -87,11 +89,29 @@ function applyModel(model) {
     app.handOrder = null;
     app.selected.clear();
   }
+  trackFresh(model);
   playSounds(model);
   if (status) prevStatus = status;
   app.model = model;
   render();
   autoAct(model);
+}
+
+/** 手札が増えたとき（引いたとき）、増えたカードを「NEW」として目立たせる。減ったり、配り直されたら消す */
+let handMemo = null;
+function trackFresh(model) {
+  const { state, room, hand } = model;
+  const key = state && room ? `${room.gameId}:${state.round}` : null;
+  const prev = handMemo?.key === key ? handMemo.hand : null;
+  if (room?.status !== 'playing' || !prev) app.fresh = new Set();
+  else if (hand.length < prev.length) app.fresh = new Set();
+  else {
+    const had = new Set(prev);
+    const added = hand.filter((c) => !had.has(c));
+    // 1〜2枚だけ増えたときが「引いた」。一度に何枚も増えたのは配り直し
+    if (added.length > 0 && added.length <= 2) app.fresh = new Set(added);
+  }
+  handMemo = { key, hand: [...hand] };
 }
 
 /** 前回から増えた操作ログに合わせて効果音を鳴らす。最初の1回（入室・再接続直後）は鳴らさない */
@@ -141,6 +161,7 @@ function enter(roomId) {
   history.replaceState(null, '', `?room=${roomId}`);
   prevStatus = null;
   soundMemo = null;
+  handMemo = null;
   unsubscribe = subscribeRoom(roomId, app.uid, applyModel);
   heartbeat(roomId, app.uid);
   // 30秒ごとに生存を知らせ、5秒ごとに「応答なし」の表示を更新する
@@ -165,8 +186,11 @@ function detach() {
   autoSent = null;
   prevStatus = null;
   soundMemo = null;
+  handMemo = null;
+  app.fresh = new Set();
   app.handOrder = null;
   app.dragging = false;
+  closeRulebook();
   unsubscribe?.();
   unsubscribe = null;
   timers.forEach(clearInterval);
@@ -278,6 +302,7 @@ const actions = {
     detach();
     render();
   },
+  showRules(gameId, options) { showRulebook(getGame(gameId), options); },
   // 手札の並べ替え・効果音
   dragStart() { app.dragging = true; },
   dragEnd() { app.dragging = false; render(); },

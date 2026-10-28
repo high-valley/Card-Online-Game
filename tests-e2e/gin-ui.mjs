@@ -66,4 +66,39 @@ await p.click('.pile .card.back');
 await p.waitForFunction(() => document.querySelectorAll('.hand .card').length === 11);
 const n1 = Number(await p.evaluate(() => document.getElementById('app').dataset.anims ?? 0));
 ok(n1 > n0, `引いたカードのアニメーションが動いた（${n0}→${n1}）`);
+
+// 引いたカードが分かりやすい：手札の「NEW」と「いま引いたカード」欄
+ok((await p.locator('.hand .card.fresh').count()) === 1, '手札の、引いたカードに「NEW」の印が付く');
+const freshId = await p.locator('.hand .card.fresh').getAttribute('data-id');
+ok((await p.locator('.drawn').count()) === 1 && (await p.locator('.drawn .card').getAttribute('data-id')) === freshId, '「いま引いたカード」欄に、同じカードが出る');
+ok((await p.locator('.board .hint').innerText()).includes('山札から') && (await p.locator('.board .hint').innerText()).includes('を引きました'), 'ヒントにも引いたカードが出る');
+
+// ルールブック：いつでも開け、Escや✕で閉じられ、ゲームが進んでも閉じない
+await p.click('.hand-tools button:has-text("ルール")');
+await p.waitForSelector('.modal[role="dialog"]');
+const text = await p.locator('.modal').innerText();
+ok(text.includes('ジン・ラミーのルール') && text.includes('ノックとジン') && text.includes('レイオフ') && text.includes('アンダーカット'), 'ルールブックが開き、ノック・レイオフ・アンダーカットの説明がある');
+await p.keyboard.press('Escape');
+ok((await p.locator('.modal').count()) === 0, 'Escで閉じる');
+await p.click('.hand-tools button:has-text("ルール")');
+await p.mouse.click(5, 5); // 外側
+ok((await p.locator('.modal').count()) === 0, '外側をタップして閉じる');
+
+// 自分が捨てる → CPUが動く間もルールブックを開いておく
+await p.locator('.hand .card').first().click();
+await p.click('.actions button:has-text("捨てる")');
+await p.click('.hand-tools button:has-text("ルール")');
+await p.waitForSelector('.modal');
+await p.waitForSelector('.opp-move', { state: 'attached', timeout: 20000 });
+ok((await p.locator('.modal').count()) === 1, 'CPUが動いて画面が更新されても、ルールブックは閉じない');
+await p.click('.modal .close');
+const move = await p.locator('.opp-move span').first().innerText();
+ok(/引き|取り|パス/.test(move) && move.endsWith('ました') && (await p.locator('.opp-move strong').innerText()).includes('CPU'), `相手の直前の手が表示される（${move.replace(/\n+/g, ' ')}）`);
+
+// トップ画面からも見られる
+await p.click('.end-game');
+await p.waitForSelector('text=ゲームを選んでルームを作る');
+await p.click('li:has-text("大富豪") button:has-text("ルールを見る")');
+const t2 = await p.locator('.modal').innerText();
+ok(t2.includes('大富豪のルール') && t2.includes('【ON】革命') && t2.includes('【OFF】しばり'), 'トップから大富豪のルールが見られ、初期設定（革命ON・しばりOFF）が載る');
 await browser.close();
