@@ -184,3 +184,22 @@ body.modal-open { overflow: hidden; }
 }
 .game-info { display: flex; gap: 12px; align-items: center; min-width: 0; flex: 1 1 100%; } .game-info p { margin: 2px 0 0; }
 .log:empty { display: none; }
+
+/* ---- クリベッジ（他のセッションで追加。新しいデザインの色に合わせた） ---- */
+.card.dim { opacity: .35; cursor: not-allowed; }
+.board.cribbage { align-items: stretch; }
+.board.cribbage .piles { align-items: flex-end; flex-wrap: wrap; }
+.tracks { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.track-label { display: flex; justify-content: space-between; font-size: .85rem; color: var(--muted); } .track.me .track-label { color: var(--ink); font-weight: 700; }
+.track-bar { position: relative; height: 16px; background: rgba(0, 0, 0, .35); border-radius: 8px; margin: 4px 7px 0; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .5); }
+.track-bar .fill { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(244, 198, 83, .33); border-radius: 8px; transition: width .4s; }
+.track-bar .mark { position: absolute; top: 3px; bottom: 3px; width: 1px; background: rgba(255, 255, 255, .25); }
+.track-bar .peg { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; transition: left .4s; }
+.track-bar .peg.front { background: var(--gold); border: 2px solid #8a6d00; } .track-bar .peg.front.goal { box-shadow: 0 0 8px 3px var(--gold); }
+.track-bar .peg.back { background: rgba(255, 255, 255, .55); width: 10px; height: 10px; margin: -5px 0 0 -5px; }
+.count { font-size: 2.2rem; font-weight: 800; line-height: calc(var(--cw) * 1.4); min-width: 64px; text-align: center; }
+.run { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; min-height: 52px; align-items: center; } .run .played.me .card { outline: 2px solid var(--gold); }
+.crib-breakdown { background: var(--glass); border: 1px solid var(--glass-line); border-radius: 12px; padding: 8px 10px; width: 100%; display: flex; flex-direction: column; gap: 4px; }
+.crib-row { display: flex; align-items: center; gap: 8px; } .crib-kind { min-width: 5.5em; font-size: .85rem; color: var(--muted); } .crib-pts { margin-left: auto; font-weight: 700; }
+.crib-result { display: flex; flex-direction: column; gap: 8px; }
+.board.cribbage .actions { flex-wrap: wrap; justify-content: center; }

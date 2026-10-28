@@ -45,7 +45,10 @@ export function gameScreen({ app, model, actions }) {
     'div',
     { class: 'hand', style: `--n:${hand.length};--g:${groups.length}`, 'data-drop': 'hand', 'data-accepts': 'hand pile' },
     groups.map((group) =>
-      h('span', { class: 'hand-group' }, group.map((c) => cardView(c, { selected: app.selected.has(c), fresh: app.fresh.has(c), anim: 'pop', key: `hand:${c}`, onClick: mine ? () => actions.toggleCard(c) : undefined }))),
+      h('span', { class: 'hand-group' }, group.map((c) => {
+        const dim = mine && !!mod.dimCard?.(g, hand, c, uid);
+        return cardView(c, { selected: app.selected.has(c), fresh: app.fresh.has(c), dim, anim: 'pop', key: `hand:${c}`, onClick: mine && !dim ? () => actions.toggleCard(c) : undefined });
+      })),
     ),
   );
 
