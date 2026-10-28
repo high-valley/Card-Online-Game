@@ -9,6 +9,7 @@ import { gameScreen } from './common/screens/game.js';
 import { lobbyScreen } from './common/screens/lobby.js';
 import { resultScreen } from './common/screens/result.js';
 import { topScreen } from './common/screens/top.js';
+import { play, setMuted, isMuted, soundForEntry, unlockAudio } from './common/ui/sound.js';
 import { getGame } from './games/index.js';
 import './style.css';
 
@@ -18,7 +19,11 @@ const store = {
   set: (v) => { try { localStorage.setItem(NAME_KEY, v); } catch { /* 保存できなくても動く */ } },
 };
 
-const app = { uid: null, name: store.get(), roomId: null, model: null, invite: null, notice: '', busy: false, copied: false, selected: new Set() };
+const app = {
+  uid: null, name: store.get(), roomId: null, model: null, invite: null, notice: '', busy: false, copied: false, selected: new Set(),
+  handOrder: null, // ドラッグで並べ替えた手札の順（null なら自動整列）
+  dragging: false, // ドラッグ中は画面を作り直さない
+};
 let unsubscribe = null;
 /** CPU対戦中のローカル対戦（なければ null） */
 let local = null;
@@ -27,19 +32,90 @@ const root = document.getElementById('app');
 if (import.meta.env.DEV) window.__app = app; // 開発中のテスト・調査用
 
 function render() {
+  if (app.dragging) return; // ドラッグ中は作り直さない（終わったあとに dragEnd が描き直す）
   const m = app.model;
   let el;
-  if (!app.roomId) el = topScreen({ app, actions, invite: app.invite });
-  else if (!m || m.room === undefined) el = loading('読み込み中…');
-  else if (m.room === null) el = loading('ルームが見つかりません', true);
-  else if (!m.playersLoaded) el = loading('読み込み中…');
-  else if (m.room.status === 'playing' && m.state?.game && !m.state.game.ended) el = gameScreen({ app, model: m, actions });
-  else if (m.room.status === 'finished' && m.state?.result) el = resultScreen({ app, model: m, actions });
-  else if (m.room.status === 'playing' || m.room.status === 'finished') el = loading('読み込み中…');
-  else el = lobbyScreen({ app, model: m, actions });
+  let screen;
+  if (!app.roomId) [el, screen] = [topScreen({ app, actions, invite: app.invite }), 'top'];
+  else if (!m || m.room === undefined) [el, screen] = [loading('読み込み中…'), 'loading'];
+  else if (m.room === null) [el, screen] = [loading('ルームが見つかりません', true), 'loading'];
+  else if (!m.playersLoaded) [el, screen] = [loading('読み込み中…'), 'loading'];
+  else if (m.room.status === 'playing' && m.state?.game && !m.state.game.ended) [el, screen] = [gameScreen({ app, model: m, actions }), 'game'];
+  else if (m.room.status === 'finished' && m.state?.result) [el, screen] = [resultScreen({ app, model: m, actions }), 'result'];
+  else if (m.room.status === 'playing' || m.room.status === 'finished') [el, screen] = [loading('読み込み中…'), 'loading'];
+  else [el, screen] = [lobbyScreen({ app, model: m, actions }), 'lobby'];
   // 表示が変わらないときは差し替えない（タップ中に画面が作り直されて操作が無効になるのを防ぐ）
   if (root.firstElementChild?.outerHTML === el.outerHTML) return;
   root.replaceChildren(el);
+  animateNew(screen);
+}
+
+/** 新しく現れた（data-key が前回の描画になかった）カードを動かす。画面が切り替わった直後は動かさない */
+let prevKeys = new Set();
+let prevScreen = null;
+let animCount = 0;
+const KEYFRAMES = {
+  pop: [{ transform: 'translateY(-48px) scale(.7)', opacity: 0 }, { transform: 'none', opacity: 1 }], // 山札から手札へ
+  drop: [{ transform: 'translateY(36px) scale(1.25) rotate(-6deg)', opacity: 0 }, { transform: 'none', opacity: 1 }], // 捨て札・場へ
+};
+function animateNew(screen) {
+  const els = [...root.querySelectorAll('[data-anim]')];
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (screen === prevScreen && !reduced) {
+    for (const el of els) {
+      if (prevKeys.has(el.dataset.key) || !el.animate) continue;
+      el.animate(KEYFRAMES[el.dataset.anim] ?? KEYFRAMES.pop, { duration: 300, easing: 'ease-out' });
+      root.dataset.anims = String(++animCount); // テスト用の目印
+    }
+  }
+  prevKeys = new Set(els.map((e) => e.dataset.key));
+  prevScreen = screen;
+}
+
+/** 状態が変わったときの共通処理（オンライン・CPU対戦のどちらでも使う） */
+let prevStatus = null;
+let soundMemo = null;
+function applyModel(model) {
+  const status = model.room?.status;
+  // ゲーム中に待機へ戻ったら、ホストが途中で終了したということ
+  if (prevStatus === 'playing' && status === 'waiting') {
+    app.notice = model.room.hostUid === app.uid ? '' : 'ホストがゲームを終了しました';
+    app.selected.clear();
+  }
+  // 新しく配られたら、手札の並べ替えをやり直す
+  if (status === 'playing' && prevStatus !== 'playing') {
+    app.handOrder = null;
+    app.selected.clear();
+  }
+  playSounds(model);
+  if (status) prevStatus = status;
+  app.model = model;
+  render();
+  autoAct(model);
+}
+
+/** 前回から増えた操作ログに合わせて効果音を鳴らす。最初の1回（入室・再接続直後）は鳴らさない */
+function playSounds(model) {
+  const { state, room } = model;
+  if (!state || !room || room.status === 'waiting') {
+    soundMemo = null;
+    return;
+  }
+  const mod = getGame(room.gameId);
+  const key = `${room.gameId}:${state.round}`;
+  if (soundMemo?.key === key && state.version > soundMemo.version) {
+    const n = Math.min(state.version - soundMemo.version, state.log.length, 3);
+    state.log.slice(-n).forEach((entry, i) => {
+      const name = (mod.soundFor ?? soundForEntry)(entry, model.uid);
+      if (name) setTimeout(() => play(name), i * 180);
+    });
+  }
+  if (room.status === 'finished' && prevStatus !== 'finished' && state.result) {
+    const r = state.result;
+    const decided = Object.values(r.points ?? {}).some((p) => p > 0); // 引き分け（全員0点）は鳴らさない
+    if (decided) setTimeout(() => play(r.ranking?.[0] === model.uid ? 'win' : 'lose'), 500);
+  }
+  soundMemo = { key, version: state.version };
 }
 
 function loading(text, withHome) {
@@ -63,19 +139,9 @@ function enter(roomId) {
   app.notice = '';
   app.selected.clear();
   history.replaceState(null, '', `?room=${roomId}`);
-  let prevStatus = null;
-  unsubscribe = subscribeRoom(roomId, app.uid, (model) => {
-    const status = model.room?.status;
-    // ゲーム中に待機へ戻ったら、ホストが途中で終了したということ
-    if (prevStatus === 'playing' && status === 'waiting') {
-      app.notice = model.room.hostUid === app.uid ? '' : 'ホストがゲームを終了しました';
-      app.selected.clear();
-    }
-    if (status) prevStatus = status;
-    app.model = model;
-    render();
-    autoAct(model);
-  });
+  prevStatus = null;
+  soundMemo = null;
+  unsubscribe = subscribeRoom(roomId, app.uid, applyModel);
   heartbeat(roomId, app.uid);
   // 30秒ごとに生存を知らせ、5秒ごとに「応答なし」の表示を更新する
   timers = [setInterval(() => heartbeat(roomId, app.uid), 30_000), setInterval(render, 5_000)];
@@ -97,6 +163,10 @@ function detach() {
   local?.stop();
   local = null;
   autoSent = null;
+  prevStatus = null;
+  soundMemo = null;
+  app.handOrder = null;
+  app.dragging = false;
   unsubscribe?.();
   unsubscribe = null;
   timers.forEach(clearInterval);
@@ -178,11 +248,7 @@ const actions = {
       level: levelId,
       humanUid: app.uid,
       humanName: app.name.trim(),
-      onChange: (model) => {
-        app.model = model;
-        render();
-        autoAct(model);
-      },
+      onChange: applyModel,
     });
     app.roomId = 'local';
     app.selected.clear();
@@ -212,6 +278,12 @@ const actions = {
     detach();
     render();
   },
+  // 手札の並べ替え・効果音
+  dragStart() { app.dragging = true; },
+  dragEnd() { app.dragging = false; render(); },
+  reorderHand(ids) { app.handOrder = ids; },
+  autoSort() { app.handOrder = null; render(); },
+  toggleSound() { setMuted(!isMuted()); render(); },
   toggleCard(id) {
     const mod = getGame(app.model.room.gameId);
     const wasSelected = app.selected.delete(id);
@@ -265,4 +337,5 @@ async function boot() {
   render();
 }
 
+unlockAudio();
 boot();

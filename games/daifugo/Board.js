@@ -43,7 +43,7 @@ export function Board({ game, hand, uid, selected, names, onAction, busy }) {
       'div',
       { class: 'field' },
       f
-        ? [h('div', { class: 'field-cards' }, f.cards.map((c) => cardView(c))), h('div', { class: 'field-by' }, `${names[f.uid] ?? '?'} が出しました`)]
+        ? [h('div', { class: 'field-cards' }, f.cards.map((c) => cardView(c, { anim: 'drop', key: `field:${c}` }))), h('div', { class: 'field-by' }, `${names[f.uid] ?? '?'} が出しました`)]
         : h('div', { class: 'field-empty' }, '場は空です'),
     ),
     h('div', { class: 'hint' }, hint),

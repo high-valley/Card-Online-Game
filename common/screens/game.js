@@ -1,5 +1,8 @@
 import { getGame } from '../../games/index.js';
 import { cardView } from '../ui/cards.js';
+import { enableHandDrag } from '../ui/dragHand.js';
+import { applyOrder, moveCard } from '../ui/handOrder.js';
+import { isMuted } from '../ui/sound.js';
 import { h } from '../ui/h.js';
 
 const STALE_MS = 60_000;
@@ -27,9 +30,25 @@ export function gameScreen({ app, model, actions }) {
   const lastSeen = turnPlayer?.lastSeen?.toMillis?.();
   const stale = turn && turn !== uid && lastSeen != null && Date.now() - lastSeen > STALE_MS;
 
-  const sorted = mod.sortHand(hand, g);
+  // 手札の並び：ドラッグで並べ替えていればその順、なければゲームの自動整列（役ごとにまとめる）
+  const auto = mod.sortHand(hand, g);
+  const sorted = applyOrder(app.handOrder, hand, auto);
+  const groups = !app.handOrder && mod.handGroups ? mod.handGroups(hand, g) : [sorted];
   const selected = sorted.filter((c) => app.selected.has(c));
   const mine = turn === uid;
+
+  const handEl = h(
+    'div',
+    { class: 'hand' },
+    groups.map((group) =>
+      h('span', { class: 'hand-group' }, group.map((c) => cardView(c, { selected: app.selected.has(c), anim: 'pop', key: `hand:${c}`, onClick: mine ? () => actions.toggleCard(c) : undefined }))),
+    ),
+  );
+  enableHandDrag(handEl, {
+    onDragStart: () => actions.dragStart(),
+    onDragEnd: () => actions.dragEnd(),
+    onReorder: (moving, anchor, after) => actions.reorderHand(moveCard(sorted, moving, anchor, after)),
+  });
 
   return h(
     'main',
@@ -54,10 +73,12 @@ export function gameScreen({ app, model, actions }) {
     }),
     app.notice && h('p', { class: 'notice' }, app.notice),
     h('ol', { class: 'log' }, state.log.slice(-5).reverse().map((e) => h('li', null, logLine(e, names, mod)))),
+    handEl,
     h(
       'div',
-      { class: 'hand' },
-      sorted.map((c) => cardView(c, { selected: app.selected.has(c), onClick: mine ? () => actions.toggleCard(c) : undefined })),
+      { class: 'hand-tools' },
+      h('button', { class: 'link', disabled: !app.handOrder, onClick: () => actions.autoSort() }, '自動整列'),
+      h('button', { class: 'link', 'aria-pressed': String(!isMuted()), onClick: () => actions.toggleSound() }, isMuted() ? '効果音 OFF' : '効果音 ON'),
     ),
     isHost && h('button', { class: 'link end-game', disabled: app.busy, onClick: () => actions.endGame() }, 'ゲームを終了'),
   );

@@ -1,6 +1,7 @@
 import { Board } from './Board.js';
 import { CPU_LEVELS, createCpu } from './cpu.js';
 import { ResultDetail } from './ResultDetail.js';
+import { bestArrangement, byCard } from './melds.js';
 import { DECK_SPEC, applyAction, autoAction, canPlay, deal, defaultOptions, getResult, sortHand } from './rules.js';
 
 const MARK = { S: '♠', H: '♥', D: '♦', C: '♣' };
@@ -38,6 +39,11 @@ export default {
   autoAction,
   getResult,
   sortHand,
+  /** 自動整列：成立している役ごとに、続けてデッドウッドを、少し間をあけて並べる */
+  handGroups: (hand) => {
+    const { melds, deadwood } = bestArrangement(hand);
+    return [...melds.map((m) => [...m].sort(byCard)), ...(deadwood.length ? [deadwood] : [])];
+  },
   Board,
   ResultDetail,
   logText,

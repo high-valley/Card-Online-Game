@@ -38,6 +38,8 @@ await Promise.all(pages.map((p) => p.waitForSelector('.board')));
 const counts = await Promise.all(pages.map((p) => p.locator('.hand .card').count()));
 console.log('hand sizes', counts);
 ok(counts.reduce((a, b) => a + b) === 53, '53枚が配られ、各自は自分の手札だけ見える');
+const overflow = await Promise.all(pages.map((p) => p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)));
+ok(overflow.every((x) => x <= 0), `スマホ幅（390px）で手札が横にはみ出さない ${overflow}`);
 
 async function tryMove(p) {
   const hint = await p.locator('.hint').innerText().catch(() => '');

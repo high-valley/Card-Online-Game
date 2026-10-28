@@ -58,7 +58,7 @@ export function Board({ game, hand, uid, selected, names, onAction, busy }) {
       h(
         'div',
         { class: 'pile' },
-        top ? cardView(top, { onClick: !busy && drawDiscard.ok ? send({ type: 'draw', source: 'discard' }) : undefined }) : h('div', { class: 'card empty' }),
+        top ? cardView(top, { anim: 'drop', key: `top:${top}`, onClick: !busy && drawDiscard.ok ? send({ type: 'draw', source: 'discard' }) : undefined }) : h('div', { class: 'card empty' }),
         h('div', { class: 'sub' }, '捨て札'),
       ),
     ),
