@@ -69,7 +69,7 @@ describe('テキサスホールデムCPU', () => {
     expect(playTournament(['easy', 'normal', 'hard', 'hard', 'normal']).matchOver).toBe(true);
   });
 
-  it('チェックできるときにフォールドしない', () => {
+  it('どの手番でも合法な手を返す（rng が極端でも）', () => {
     const d = deal(players(['a', 'b']), { startingChips: 1500 }, null, undefined, () => 0);
     const cpu = createCpu('easy', d.game.turnUid, () => 0.99);
     for (let i = 0; i < 20; i++) {
