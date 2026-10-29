@@ -62,6 +62,7 @@
  * @property {(hand: CardId[], game: Object) => CardId[][]} [handGroups]  自動整列のときに、間をあけて表示するまとまり（役ごとなど）
  * @property {(entry: Object, uid: string) => string|null} [soundFor]  操作ログ1件に鳴らす効果音の名前（省略時は共通の対応）
  * @property {(props: {options: Object, onChange: (patch: Object) => void, readOnly: boolean}) => HTMLElement} [OptionsForm]  待機画面のルール設定フォーム。readOnly のときはホスト以外向けの表示だけ
- * @property {(props: {game: Object, hand: CardId[], uid: string, selected: CardId[], names: Object<string,string>, onAction: (action: Object) => void, busy: boolean}) => HTMLElement} Board  ゲーム画面の中央部分
+ * @property {boolean} [handInBoard]  true なら、自分の手札の要素を Board の handEl に渡し、Board の中に置いてもらう（手札が少なく、操作より上に見せたいゲーム。ホールデムなど）
+ * @property {(props: {game: Object, hand: CardId[], uid: string, selected: CardId[], names: Object<string,string>, onAction: (action: Object) => void, busy: boolean, handEl?: HTMLElement}) => HTMLElement} Board  ゲーム画面の中央部分
  */
 export {};

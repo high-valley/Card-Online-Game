@@ -63,7 +63,7 @@ function raiseControls({ game, info, uid, busy, send }) {
 }
 
 /** テキサスホールデムのゲーム画面中央：ブラインド・場のカード・ポット・各自のベット・操作 */
-export function Board({ game, hand, uid, names, onAction, busy }) {
+export function Board({ game, hand, uid, names, onAction, busy, handEl }) {
   const mine = game.turnUid === uid;
   const send = (a) => onAction({ ...a, uid });
   const name = (u) => names[u] ?? '?';
@@ -105,13 +105,14 @@ export function Board({ game, hand, uid, names, onAction, busy }) {
         { class: 'shown-hands' },
         shown.map(([u, cards]) => h('div', { class: 'shown' }, h('span', { class: 'sub' }, name(u)), h('span', { class: 'shown-cards' }, cards.map((c) => cardView(c, { small: true, anim: 'drop', key: `shown:${game.handNo}:${c}` }))))),
       ),
+    // 自分の手札（共通画面から受け取り、場のカードと操作の間に大きく置く）
+    hand.length > 0 && handEl,
     h('div', { class: 'hint' }, hint),
     betting &&
       h(
         'div',
         { class: 'actions holdem-actions' },
-        h('button', { disabled: busy, onClick: () => send({ type: 'fold' }) }, 'フォールド'),
-        callCheck,
+        h('div', { class: 'main-row' }, h('button', { disabled: busy, onClick: () => send({ type: 'fold' }) }, 'フォールド'), callCheck),
         info.canRaise && raiseControls({ game, info, uid, busy, send }),
       ),
   );

@@ -86,9 +86,10 @@ export function gameScreen({ app, model, actions }) {
     mod.Board({
       game: g, hand, uid, selected, names, busy: app.busy, fresh: [...app.fresh], log: state.log,
       onAction: (action) => actions.act(action),
+      handEl: mod.handInBoard ? handEl : undefined,
     }),
     app.notice && h('p', { class: 'notice', role: 'status' }, app.notice),
-    handEl,
+    !mod.handInBoard && handEl,
     h('ol', { class: 'log', 'aria-label': '直近の出来事' }, state.log.slice(-4).reverse().map((e) => h('li', null, logLine(e, names, mod)))),
   );
 
