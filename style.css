@@ -222,3 +222,12 @@ body.modal-open { overflow: hidden; }
 .holdem-result .hr-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; } .holdem-result .me strong { color: var(--gold); }
 .chips-list { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-direction: column; gap: 2px; font-size: .9rem; } .chips-list .me { font-weight: 800; }
 .holdem-options { display: flex; flex-direction: column; gap: 10px; }
+
+/* ---- 最新版の確認・更新 ---- */
+.version { margin-top: 8px; padding: 12px 14px; border-radius: var(--radius); background: var(--glass); border: 1px solid var(--glass-line); display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+.version .version-line { font-size: .85rem; } .version .version-id { font-family: ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: .02em; }
+.version .version-status { grid-column: 1; font-size: .8rem; color: var(--muted); } .version button { grid-column: 2; grid-row: 1 / span 2; min-width: 108px; }
+.version.has-update { border-color: var(--gold); box-shadow: 0 0 14px rgba(244, 198, 83, .25); } .version.has-update .version-status { color: var(--gold); font-weight: 700; }
+#update-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 80; display: flex; align-items: center; justify-content: center; gap: 10px; padding: max(8px, env(safe-area-inset-top)) 12px 8px; background: linear-gradient(180deg, #0b2f22, #0a2a1f); border-bottom: 2px solid var(--gold); box-shadow: 0 6px 20px rgba(0, 0, 0, .5); font-weight: 700; font-size: .88rem; animation: drop-in .25s var(--ease); }
+#update-banner span { flex: 1; min-width: 0; } #update-banner button { min-height: 36px; padding: 4px 14px; white-space: nowrap; flex: none; } @keyframes drop-in { from { transform: translateY(-100%); } }
+body.has-update-banner { padding-top: 58px; }

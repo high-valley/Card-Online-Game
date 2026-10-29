@@ -1,6 +1,7 @@
 import { games } from '../../games/index.js';
 import { h } from '../ui/h.js';
 import { isMuted } from '../ui/sound.js';
+import { versionPanel } from '../ui/versionPanel.js';
 
 /** CPU対戦（そのゲームがCPUに対応しているときだけ）：難易度を選んで、1人で始める */
 function cpuRow(g, actions) {
@@ -59,5 +60,6 @@ export function topScreen({ app, actions, invite }) {
     h('h2', null, 'ルームに入る'),
     h('div', { class: 'join-row' }, codeInput, h('button', { disabled: app.busy, onClick: () => actions.joinByCode(codeInput.value.trim()) }, '参加')),
     h('button', { class: 'link', onClick: () => actions.toggleSound() }, isMuted() ? '効果音 OFF' : '効果音 ON'),
+    versionPanel({ app, actions }),
   );
 }

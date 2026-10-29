@@ -1,5 +1,6 @@
 import { getGame, games } from '../../games/index.js';
 import { h } from '../ui/h.js';
+import { versionPanel } from '../ui/versionPanel.js';
 
 /** 待機画面：参加者、招待URL、ホストのルール設定・ゲーム切り替え・開始 */
 export function lobbyScreen({ app, model, actions }) {
@@ -48,5 +49,6 @@ export function lobbyScreen({ app, model, actions }) {
         ]
       : h('p', { class: 'sub' }, 'ホストが開始するのを待っています…'),
     h('button', { class: 'link', onClick: () => actions.leave() }, 'ルームを出る'),
+    versionPanel({ app, actions }),
   );
 }
