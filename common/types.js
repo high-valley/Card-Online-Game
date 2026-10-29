@@ -37,6 +37,7 @@
  * @typedef {Object} GameModule
  * @property {string} id
  * @property {string} name
+ * @property {{mark: string, red: boolean}} [emblem]  トップ画面のゲームの目印（トランプのマーク）
  * @property {number} minPlayers
  * @property {number} maxPlayers
  * @property {{jokers: number}} deck  山札の指定（ジョーカー枚数）
@@ -57,6 +58,7 @@
  * @property {(game: Object) => GameResult} getResult
  * @property {(hand: CardId[], game: Object) => CardId[]} sortHand  手札の並び順
  * @property {(options: Object) => {title: string, paras?: string[], list?: string[]}[]} [rulebook]  ルールブックの内容（いつでも開ける）。options はそのルームの設定
+ * @property {(p: {game: Object, hand: CardId[], uid: string, source: {kind: 'hand'|'pile', id?: string, name?: string, cards?: CardId[]}, target: string}) => ({action: Object}|{error: string}|null)} [dropAction]  ドラッグ＆ドロップで何をするか（引く・捨てる・出す）。null なら何もしない
  * @property {(hand: CardId[], game: Object) => CardId[][]} [handGroups]  自動整列のときに、間をあけて表示するまとまり（役ごとなど）
  * @property {(entry: Object, uid: string) => string|null} [soundFor]  操作ログ1件に鳴らす効果音の名前（省略時は共通の対応）
  * @property {(props: {options: Object, onChange: (patch: Object) => void, readOnly: boolean}) => HTMLElement} [OptionsForm]  待機画面のルール設定フォーム。readOnly のときはホスト以外向けの表示だけ

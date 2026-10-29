@@ -3,7 +3,7 @@ import { h } from '../../common/ui/h.js';
 import { breakdownView } from './Breakdown.js';
 import { canPlay, legalPlays } from './rules.js';
 
-const REASONS = {
+export const REASONS = {
   'over-31': '合計が31を超えるカードは出せません',
   'must-play': '出せるカードがあるのでGoできません',
   'need-two-cards': 'クリブに置くカードを2枚選んでください',
@@ -65,7 +65,7 @@ export function Board({ game, hand, uid, selected, names, onAction, busy }) {
       h('div', { class: 'pile' }, game.starter ? cardView(game.starter, { anim: 'drop', key: `starter:${game.starter}` }) : h('div', { class: 'card empty' }), h('div', { class: 'sub' }, 'スターター')),
       h(
         'div',
-        { class: 'pile' },
+        { class: 'pile crib-pile', 'data-drop': 'crib', 'data-accepts': 'hand' },
         h('div', { class: 'card back', 'aria-label': 'クリブ' }, h('span', { class: 'rank' }, `${game.cribCount}枚`)),
         h('div', { class: 'sub' }, `${names[game.dealer] ?? '?'} のクリブ`),
       ),
@@ -74,7 +74,7 @@ export function Board({ game, hand, uid, selected, names, onAction, busy }) {
     phase === 'PEGGING' &&
       h(
         'div',
-        { class: 'run' },
+        { class: 'run', 'data-drop': 'table', 'data-accepts': 'hand' },
         seq.length === 0
           ? h('span', { class: 'sub' }, '新しい区間（カウント0）')
           : seq.map((e) => h('span', { class: `played${e.uid === uid ? ' me' : ''}` }, cardView(e.card, { small: true, anim: 'drop', key: `run:${game.round}:${e.card}` }))),

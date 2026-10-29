@@ -1,4 +1,4 @@
-import { Board } from './Board.js';
+import { Board, REASONS } from './Board.js';
 import { CPU_LEVELS, createCpu } from './cpu.js';
 import { ResultDetail } from './ResultDetail.js';
 import { rulebook } from './rulebook.js';
@@ -47,6 +47,16 @@ export default {
   logText,
   soundFor: (entry) => (entry.type === 'play' ? (entry.points > 0 ? 'special' : 'card') : entry.type === 'discard' ? 'discard' : entry.type === 'go' ? 'pass' : entry.type === 'show' ? (entry.points > 0 ? 'special' : null) : null),
   cpu: { levels: CPU_LEVELS, create: createCpu },
+  /** ドラッグ＆ドロップ：手札の2枚をクリブへ（クリブに置く）／手札の1枚を場へ（出す） */
+  dropAction: ({ game, hand, uid, source, target }) => {
+    if (source.kind !== 'hand') return null;
+    const want = game.phase === 'DISCARD_TO_CRIB' ? 'crib' : game.phase === 'PEGGING' ? 'table' : null;
+    if (!want) return null;
+    if (target !== want) return target && target !== 'hand' ? { error: want === 'crib' ? 'クリブに置くカードは、クリブへドラッグします' : '出すカードは、場へドラッグします' } : null;
+    const action = want === 'crib' ? { type: 'discard', uid, cards: source.cards } : { type: 'play', uid, card: source.id };
+    const checked = canPlay(game, hand, action);
+    return checked.ok ? { action } : { error: REASONS[checked.reason] ?? (checked.reason === 'not-your-turn' ? 'あなたの番ではありません' : 'そのカードは今は出せません') };
+  },
   playerStatus: (game, player) => ({ text: `${player.handCount}枚 ／ ${game.scores[player.uid] ?? 0}点`, out: false }),
   resultActionLabel: (result) => (result.matchOver ? '新しいマッチを始める' : result.redeal ? '配り直す' : '次のラウンド'),
 };

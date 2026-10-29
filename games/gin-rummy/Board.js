@@ -1,6 +1,7 @@
 import { cardView } from '../../common/ui/cards.js';
 import { h } from '../../common/ui/h.js';
 import { deadwoodOf } from './melds.js';
+import { reasonText } from './messages.js';
 import { canPlay } from './rules.js';
 import { showCard, summarizeOpponentTurn } from './turnSummary.js';
 
@@ -11,8 +12,9 @@ const REASONS = {
   'must-draw-deck': '最初のターンは山札から引きます',
 };
 
+// 引けないときも、ドラッグしてみて理由を知れるように disabled にはしない（クリックだけ無効）
 const back = (label, { onClick, disabled }) =>
-  h('button', { type: 'button', class: 'card back', disabled, onClick }, h('span', { class: 'rank' }, label));
+  h('button', { type: 'button', class: 'card back', 'aria-disabled': disabled ? 'true' : null, 'data-drag': 'deck', onClick: disabled ? undefined : onClick }, h('span', { class: 'rank' }, label));
 
 /** 11枚のとき：どれか1枚を捨てた後の最小デッドウッド */
 const bestAfterDiscard = (hand) => Math.min(...hand.map((c) => deadwoodOf(hand.filter((x) => x !== c))));
@@ -63,11 +65,22 @@ export function Board({ game, hand, uid, selected, names, onAction, busy, fresh 
       h('div', { class: 'pile' }, back(`山札 ${game.deckCount}`, { disabled: busy || !drawDeck.ok, onClick: send({ type: 'draw', source: 'deck' }) }), h('div', { class: 'sub' }, '山札')),
       h(
         'div',
-        { class: 'pile' },
-        top ? cardView(top, { anim: 'drop', key: `top:${top}`, onClick: !busy && drawDiscard.ok ? send({ type: 'draw', source: 'discard' }) : undefined }) : h('div', { class: 'card empty' }),
+        { class: 'pile discard-pile', 'data-drop': 'discard', 'data-accepts': 'hand' },
+        top
+          ? cardView(top, { anim: 'drop', key: `top:${top}`, attrs: { 'data-drag': 'discard' }, onClick: !busy && drawDiscard.ok ? send({ type: 'draw', source: 'discard' }) : undefined })
+          : h('div', { class: 'card empty' }),
         h('div', { class: 'sub' }, '捨て札'),
       ),
     ),
+    // カードをドラッグしている間だけ出る、宣言用の置き場
+    mine &&
+      phase === 'WAITING_FOR_DISCARD' &&
+      h(
+        'div',
+        { class: 'drop-zones' },
+        h('div', { class: 'zone', 'data-drop': 'knock', 'data-accepts': 'hand' }, 'ノック', h('small', null, `${game.options.knockLimit}点以下`)),
+        h('div', { class: 'zone', 'data-drop': 'gin', 'data-accepts': 'hand' }, 'ジン', h('small', null, '0点')),
+      ),
     oppMove &&
       h(
         'div',

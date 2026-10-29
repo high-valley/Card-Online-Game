@@ -21,25 +21,25 @@ const before = await ids();
 ok(before.length === 10 && new Set(before).size === 10, '手札10枚');
 ok((await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)) <= 0, 'スマホ幅で横にはみ出さない');
 ok((await p.locator('.hand-group').count()) >= 1, '自動整列：役ごと・デッドウッドのまとまりに分かれて並ぶ');
-ok(await p.locator('.hand-tools button:has-text("自動整列")').isDisabled(), '並べ替える前は「自動整列」は押せない');
+ok((await p.locator('.hand-tools button:has-text("自動整列")').count()) === 0, '並べ替える前は「自動整列」ボタンは出ない');
 
 // 先頭のカードを、いちばん後ろのカードの右へドラッグする（自分の番でなくてもできる）
 const first = await p.locator('.hand .card').first().boundingBox();
 const last = await p.locator('.hand .card').last().boundingBox();
-await p.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
+await p.mouse.move(first.x + 7, first.y + first.height * 0.4);
 await p.mouse.down();
 await p.mouse.move(first.x + 40, first.y + 5, { steps: 4 });
-ok((await p.locator('.card.dragging').count()) === 1, 'ドラッグ中はカードが持ち上がって指に付いてくる');
+ok((await p.locator('.dnd-ghost').count()) === 1 && (await p.locator('.drag-origin').count()) === 1, 'ドラッグ中はカードが指に付いてきて、元の場所は薄くなる');
 await p.mouse.move(last.x + last.width - 4, last.y + last.height / 2, { steps: 10 });
 await p.mouse.up();
 const after = await ids();
 ok(after.at(-1) === before[0] && after.length === 10 && new Set(after).size === 10, `先頭のカードが末尾に移った（${before[0]}）`);
 ok((await p.locator('.card.selected').count()) === 0, 'ドラッグ直後のクリックでカードが選ばれない');
-ok(await p.locator('.hand-tools button:has-text("自動整列")').isEnabled(), '並べ替えると「自動整列」が押せる');
+ok(await p.locator('.hand-tools button:has-text("自動整列")').isVisible(), '並べ替えると「自動整列」ボタンが出る');
 
 // 少し動かしただけ（タップ）では並べ替わらない
 const box = await p.locator('.hand .card').nth(2).boundingBox();
-await p.mouse.move(box.x + 10, box.y + 10);
+await p.mouse.move(box.x + 8, box.y + 10);
 await p.mouse.down();
 await p.mouse.move(box.x + 13, box.y + 11);
 await p.mouse.up();
@@ -85,7 +85,7 @@ await p.mouse.click(5, 5); // 外側
 ok((await p.locator('.modal').count()) === 0, '外側をタップして閉じる');
 
 // 自分が捨てる → CPUが動く間もルールブックを開いておく
-await p.locator('.hand .card').first().click();
+await p.locator('.hand .card').first().click({ position: { x: 7, y: 24 } });
 await p.click('.actions button:has-text("捨てる")');
 await p.click('.hand-tools button:has-text("ルール")');
 await p.waitForSelector('.modal');

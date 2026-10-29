@@ -1,6 +1,7 @@
 import { Board } from './Board.js';
 import { CPU_LEVELS, createCpu } from './cpu.js';
 import { OptionsForm } from './OptionsForm.js';
+import { reasonText } from './messages.js';
 import { rulebook } from './rulebook.js';
 import { DECK_SPEC, applyAction, canPlay, deal, defaultOptions, getResult, sortHand } from './rules.js';
 
@@ -14,6 +15,7 @@ const playerStatus = (game, player) => {
 export default {
   id: 'daifugo',
   name: '大富豪',
+  emblem: { mark: '♠', red: false },
   minPlayers: 3,
   maxPlayers: 5,
   description: 'ジョーカー入り53枚。革命・8切りなどの特殊ルール対応（CPU対戦あり）',
@@ -26,6 +28,14 @@ export default {
   sortHand,
   Board,
   playerStatus,
+  /** ドラッグ＆ドロップ：手札のカード（選択中ならまとめて）を場へ＝出す */
+  dropAction: ({ game, hand, uid, source, target }) => {
+    if (source.kind !== 'hand') return null;
+    if (target !== 'field') return target && target !== 'hand' ? { error: '出すカードは、場の上にドラッグします' } : null;
+    const action = { type: 'play', uid, cards: source.cards?.length ? source.cards : [source.id] };
+    const checked = canPlay(game, hand, action);
+    return checked.ok ? { action } : { error: reasonText(checked.reason) };
+  },
   cpu: { levels: CPU_LEVELS, opponents: 3, create: createCpu },
   OptionsForm,
   rulebook,

@@ -29,10 +29,10 @@ async function tryMove() {
   if (!hint || / の番です$/.test(hint)) return false;
   const n = await p.locator('.hand .card').count();
   for (let i = 0; i < n; i++) {
-    await p.locator('.hand .card').nth(i).click();
+    await p.locator('.hand .card').nth(i).click({ position: { x: 7, y: 24 } });
     const play = p.locator('.actions .primary');
     if (await play.isEnabled()) { await play.click(); return true; }
-    await p.locator('.hand .card').nth(i).click();
+    await p.locator('.hand .card').nth(i).click({ position: { x: 7, y: 24 } });
   }
   const pass = p.locator('.actions button', { hasText: 'パス' });
   if (await pass.isEnabled()) { await pass.click(); return true; }

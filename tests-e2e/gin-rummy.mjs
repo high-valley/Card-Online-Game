@@ -44,17 +44,17 @@ async function tryMove(p) {
   const best = Number(/最小 (\d+)点/.exec(info)?.[1] ?? 99);
   let discardIdx = -1;
   for (let i = 0; i < n; i++) {
-    await p.locator('.hand .card').nth(i).click();
+    await p.locator('.hand .card').nth(i).click({ position: { x: 7, y: 24 } });
     if (best <= 10) {
       if (await enabled(p, 'ジン')) { await p.click('.actions button:has-text("ジン")'); return 'gin'; }
       if (await enabled(p, 'ノック')) { await p.click('.actions button:has-text("ノック")'); return 'knock'; }
     }
     if (await enabled(p, '捨てる')) { discardIdx = i; if (best > 10) break; }
-    else await p.locator('.hand .card').nth(i).click();
-    if (best <= 10) await p.locator('.hand .card').nth(i).click();
+    else await p.locator('.hand .card').nth(i).click({ position: { x: 7, y: 24 } });
+    if (best <= 10) await p.locator('.hand .card').nth(i).click({ position: { x: 7, y: 24 } });
   }
   if (discardIdx < 0) return null;
-  if (best <= 10) await p.locator('.hand .card').nth(discardIdx).click(); // 探している間は選択を外していたので選び直す
+  if (best <= 10) await p.locator('.hand .card').nth(discardIdx).click({ position: { x: 7, y: 24 } }); // 探している間は選択を外していたので選び直す
   await p.click('.actions button:has-text("捨てる")');
   return 'discard';
 }

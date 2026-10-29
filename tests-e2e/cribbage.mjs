@@ -36,14 +36,14 @@ const btn = (p, label) => p.locator('.actions button', { hasText: label });
 
 async function tryMove(p) {
   if ((await btn(p, 'クリブに置く').count()) && (await p.locator('.hand .card').count()) === 6) {
-    await p.locator('.hand .card').nth(0).click();
-    await p.locator('.hand .card').nth(1).click();
+    await p.locator('.hand .card').nth(0).click({ position: { x: 7, y: 24 } });
+    await p.locator('.hand .card').nth(1).click({ position: { x: 7, y: 24 } });
     await btn(p, 'クリブに置く').click();
     return 'discard';
   }
   if (await btn(p, '出す').count()) {
     if (await btn(p, 'Go').count()) { await btn(p, 'Go').click(); return 'go'; }
-    await p.locator('.hand .card:not(.dim)').first().click();
+    await p.locator('.hand .card:not(.dim)').first().click({ position: { x: 7, y: 24 } });
     await btn(p, '出す').click();
     return 'play';
   }
