@@ -10,6 +10,7 @@ import { lobbyScreen } from './common/screens/lobby.js';
 import { resultScreen } from './common/screens/result.js';
 import { topScreen } from './common/screens/top.js';
 import { closeRulebook, showRulebook } from './common/ui/rulebook.js';
+import { CURRENT, DEV_ID, applyUpdate, fetchLatest, isNewer, stripUpdateParam } from './common/version.js';
 import { play, setMuted, isMuted, soundForEntry, unlockAudio } from './common/ui/sound.js';
 import { getGame } from './games/index.js';
 import './style.css';
@@ -25,6 +26,8 @@ const app = {
   handOrder: null, // ドラッグで並べ替えた手札の順（null なら自動整列）
   dragging: false, // ドラッグ中は画面を作り直さない
   fresh: new Set(), // 直前に手札に増えたカード（引いたカード）
+  // 最新版の確認：idle / checking / latest / available / error / dev
+  update: { status: CURRENT.id === DEV_ID ? 'dev' : 'idle', latest: null, checkedAt: null, dismissed: null },
 };
 let unsubscribe = null;
 /** CPU対戦中のローカル対戦（なければ null） */
@@ -310,6 +313,13 @@ const actions = {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { if (app.notice === text) { app.notice = ''; render(); } }, 2800);
   },
+  checkUpdate,
+  dismissUpdate() { app.update.dismissed = app.update.latest?.id; renderUpdateBanner(); },
+  async doUpdate() {
+    // CPU対戦は、このブラウザの中だけで進んでいるので、読み込み直すと途中経過が消える
+    if (local && !confirm('更新すると、CPU対戦の途中経過は消えます（オンライン対戦はそのまま続けられます）。更新しますか？')) return;
+    if (app.update.latest) await applyUpdate(app.update.latest);
+  },
   showRules(gameId, options) { showRulebook(getGame(gameId), options); },
   // 手札の並べ替え・効果音
   dragStart() { app.dragging = true; },
@@ -350,7 +360,63 @@ const actions = {
   },
 };
 
+/** 画面の上に出す「新しいバージョンがあります」の帯。ゲームの画面の描き直しでは消えないよう、#app の外に置く */
+function renderUpdateBanner() {
+  let bar = document.getElementById('update-banner');
+  const u = app.update;
+  const show = u.status === 'available' && u.dismissed !== u.latest?.id;
+  document.body.classList.toggle('has-update-banner', show);
+  if (!show) return bar?.remove();
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'update-banner';
+    bar.setAttribute('role', 'status');
+    document.body.prepend(bar);
+  }
+  const text = document.createElement('span');
+  text.textContent = '新しいバージョンがあります';
+  const go = document.createElement('button');
+  go.className = 'primary';
+  go.textContent = '更新する';
+  go.onclick = () => actions.doUpdate();
+  const later = document.createElement('button');
+  later.className = 'link';
+  later.textContent = 'あとで';
+  later.onclick = () => actions.dismissUpdate();
+  bar.replaceChildren(text, go, later);
+}
+
+/** サーバーの version.json と比べる。manual=true は、ボタンから押したとき（確認中・失敗も画面に出す） */
+let checking = false;
+async function checkUpdate(manual) {
+  if (CURRENT.id === DEV_ID || checking) return;
+  checking = true;
+  if (manual) { app.update.status = 'checking'; render(); }
+  const latest = await fetchLatest();
+  checking = false;
+  const u = app.update;
+  u.checkedAt = Date.now();
+  if (!latest) { if (manual || u.status === 'checking') u.status = 'error'; }
+  else if (isNewer(CURRENT, latest)) Object.assign(u, { status: 'available', latest });
+  else Object.assign(u, { status: 'latest', latest });
+  render();
+  renderUpdateBanner();
+}
+
+/** 開いたとき・5分ごと・画面に戻ってきたとき（前回から1分以上たっていれば）に、自動で確認する */
+function watchUpdates() {
+  checkUpdate(false);
+  setInterval(() => checkUpdate(false), 5 * 60_000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && Date.now() - (app.update.checkedAt ?? 0) > 60_000) checkUpdate(false);
+  });
+}
+
 async function boot() {
+  // 更新直後に付いている _v（キャッシュを避ける目印）は、URLから消す
+  const clean = stripUpdateParam(location.href);
+  if (clean) history.replaceState(null, '', clean);
+  watchUpdates();
   root.replaceChildren(loading('接続中…'));
   try {
     app.uid = await ensureSignedIn();
