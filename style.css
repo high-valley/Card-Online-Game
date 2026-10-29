@@ -203,3 +203,22 @@ body.modal-open { overflow: hidden; }
 .crib-row { display: flex; align-items: center; gap: 8px; } .crib-kind { min-width: 5.5em; font-size: .85rem; color: var(--muted); } .crib-pts { margin-left: auto; font-weight: 700; }
 .crib-result { display: flex; flex-direction: column; gap: 8px; }
 .board.cribbage .actions { flex-wrap: wrap; justify-content: center; }
+
+/* ---- テキサスホールデム ---- */
+.board.holdem { align-items: stretch; text-align: center; }
+.board.holdem .level-info { text-align: center; font-size: .78rem; }
+.community { display: flex; gap: 5px; justify-content: center; }
+.community .card { --w: clamp(40px, 12.2vw, 66px); }
+.card.empty { border: 2px dashed var(--glass-line); background: transparent; box-shadow: none; }
+.pot { display: flex; flex-direction: column; gap: 2px; align-items: center; } .pot strong { font-size: 1.3rem; color: var(--gold); }
+.shown-hands { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; }
+.shown { display: flex; align-items: center; gap: 6px; } .shown-cards { display: inline-flex; gap: 3px; }
+.holdem-actions { flex-direction: column; align-items: stretch; width: 100%; }
+.holdem-actions > button { width: 100%; }
+.holdem-actions .raise-box { display: flex; flex-direction: column; gap: 8px; background: var(--glass); border: 1px solid var(--glass-line); border-radius: 14px; padding: 10px; }
+.raise-row { display: flex; gap: 10px; align-items: center; } .raise-row input[type=range] { flex: 1; min-width: 0; } .raise-row input[type=number] { width: 7em; }
+.raise-quick { display: flex; gap: 6px; } .raise-quick .quick { flex: 1; min-width: 0; min-height: 40px; font-size: .8rem; padding: 0 2px; white-space: nowrap; }
+.holdem-result { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.holdem-result .hr-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; } .holdem-result .me strong { color: var(--gold); }
+.chips-list { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-direction: column; gap: 2px; font-size: .9rem; } .chips-list .me { font-weight: 800; }
+.holdem-options { display: flex; flex-direction: column; gap: 10px; }

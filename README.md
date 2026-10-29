@@ -5,7 +5,7 @@
 ## 構成
 
 - `common/` … ルーム・ログイン・手番進行・共通画面（特定のゲームは知らない）
-- `games/daifugo/`（大富豪）、`games/gin-rummy/`（ジン・ラミー）、`games/cribbage/`（クリベッジ）… ゲームモジュール（`rules.js` ＋ `Board.js` ＋ テスト）。`games/index.js` に登録するだけで一覧に出る
+- `games/daifugo/`（大富豪）、`games/texas-holdem/`（テキサスホールデム）、`games/gin-rummy/`（ジン・ラミー）、`games/cribbage/`（クリベッジ）… ゲームモジュール（`rules.js` ＋ `Board.js` ＋ テスト）。`games/index.js` に登録するだけで一覧に出る
 - `common/types.js` … ゲームモジュールの約束事（JSDoc）
 - `firestore.rules` … セキュリティルール（`cards_*` コレクション）
 
@@ -43,6 +43,24 @@ CPU は自分の手札と公開情報（場・残り枚数・革命・しばり�
 LEVEL=hard node tests-e2e/daifugo-cpu.mjs   # CPU対戦（easy / normal / hard）を1ゲーム通す
 node tools/daifugo-bench.mjs 400            # CPUの強さ比べ（4人卓で1人だけ強さを変えて、平均順位点を表示）
 ```
+
+## テキサスホールデム
+
+2〜9人のノーリミット・トーナメント。`games/texas-holdem/`（`hands.js` 役判定、`rules.js` 進行・ベッティング・サイドポット・ブラインド、`cpu.js` CPU）。
+全員が同じチップで始め、`levelHands` ハンドごとにブラインドが上がる（10/20 から。最後のレベルのあとは倍々）。チップを失った人から脱落し、最後の1人が優勝。1ハンド＝1ラウンドで、チップと脱落順は結果から次のハンドへ引き継ぐ。順位点はトーナメントが終わったときだけ通算に入る。
+
+- 山札（バーンカード・場の札を含む）は非公開の山札欄に保存し、場のカードは開いた分だけ `game.board` に入れる
+- ショーダウンでは、手札を知っている本人の操作でしか公開できないので、各自の手番で `show` を送る（`autoAction` が自動で送る）。公開しない（スキップ）と、ポットを争う権利を失う
+- サイドポットは出した額の段ごとに作り、争う人が同じ段は1つにまとめる。誰にも受けてもらえなかったベットは持ち主に戻る。端数はボタンの左から数えて早い勝者へ
+- 最小幅に満たないオールインは再レイズを開かない（`game.acted`）
+
+```
+node tests-e2e/holdem.mjs                  # オンライン3人で2ハンド通す（エミュレータと dev サーバー起動中に実行）
+LEVEL=hard node tests-e2e/holdem-cpu.mjs   # CPU対戦（人間1人＋CPU3人。easy / normal / hard）を数ハンド通す。SHOTS=ディレクトリ で画面を保存
+node tools/holdem-bench.mjs 100            # CPUの強さ比べ
+```
+
+CPU は自分の手札・場・公開されたベットだけで判断する（`games/texas-holdem/cpu.js`）。
 
 ## ジン・ラミー
 
