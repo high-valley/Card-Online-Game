@@ -12,7 +12,9 @@ const fmt = (n) => n.toLocaleString('ja-JP');
 
 function logText(entry, names) {
   const who = names[entry.uid] ?? '?';
-  const dealt = entry.dealt?.length ? ` → ${entry.effects.map((e) => STREET[e]).filter(Boolean).pop() ?? '場'}：${entry.dealt.map(show).join(' ')}` : '';
+  // 1回の操作で複数のストリートが開く（全員オールインのランアウト）ことがあるので、ストリートごとに枚数分ずつ切り分ける
+  let rest = [...(entry.dealt ?? [])];
+  const dealt = (entry.effects ?? []).filter((e) => STREET[e]).map((e) => ` → ${STREET[e]}：${rest.splice(0, e === 'flop' ? 3 : 1).map(show).join(' ')}`).join('');
   const allin = entry.effects?.includes('allin') ? '（オールイン）' : '';
   switch (entry.type) {
     case 'fold': return `${who}: フォールド${dealt}`;

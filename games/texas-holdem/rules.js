@@ -161,8 +161,7 @@ export function deal(players, options, prevResult = null, deck = shuffle(buildDe
   };
   commit(g, sbUid, blinds.sb);
   commit(g, bbUid, blinds.bb);
-  // ビッグブラインドが足りずにオールインなら、実際に出した額が最高ベット（コールは不要な分は精算で戻る）
-  g.currentBet = Math.max(g.bets[bbUid], g.bets[sbUid]);
+  // ビッグブラインドが払いきれずオールインでも、コールの額は満額のビッグブラインド（足りない分は精算で本人に戻る）
 
   const log = { type: 'deal', uid: dealer, effects: [] };
   const left = [...rest];
@@ -218,9 +217,11 @@ export function buildPots(g) {
     const amount = sum(g.order.map((u) => Math.min(g.total[u] ?? 0, level) - Math.min(g.total[u] ?? 0, prev)));
     const eligible = g.order.filter((u) => isLive(g, u) && (g.total[u] ?? 0) >= level);
     const last = pots[pots.length - 1];
+    // その段に出したのが1人だけなら、誰にも受けてもらえなかったベット（本人に戻る）
+    const refund = g.order.filter((u) => (g.total[u] ?? 0) > prev).length === 1;
     // 争う人が同じ（降りた人の少額で段が分かれただけ）なら、ひとつのポットにまとめる
-    if (last && (eligible.length === 0 || eligible.join() === last.eligible.join())) last.amount += amount;
-    else pots.push({ amount, eligible });
+    if (last && !refund && !last.refund && (eligible.length === 0 || eligible.join() === last.eligible.join())) last.amount += amount;
+    else pots.push({ amount, eligible, refund });
     prev = level;
   }
   return pots;
@@ -262,7 +263,7 @@ function resolve(g) {
       awards[u] = (awards[u] ?? 0) + got;
       g.chips[u] += got;
     }
-    return { amount: pot.amount, eligible: pot.eligible, winners: ordered };
+    return { amount: pot.amount, eligible: pot.eligible, winners: ordered, refund: pot.refund };
   });
   g.handResult = { uncontested: false, pots, awards, hands: Object.fromEntries(Object.entries(hands).map(([u, h]) => [u, { name: h.name, cards: h.cards }])) };
   finish(g);

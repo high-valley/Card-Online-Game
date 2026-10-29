@@ -99,11 +99,16 @@ describe('配布', () => {
     expect(d.game.handNo).toBe(1);
   });
 
-  it('ビッグブラインドが払いきれないときはオールインで、コールは足りない分だけ', () => {
+  it('ビッグブラインドが払いきれずオールインでも、コールの額は満額のビッグブラインド', () => {
     const t = table(['a', 'b', 'c'], { chips: { a: 1000, b: 1000, c: 8 } });
     expect(t.game.chips.c).toBe(0);
     expect(t.game.bets.c).toBe(8);
-    expect(t.game.currentBet).toBe(10); // スモールブラインドの方が多い
+    expect(t.game.currentBet).toBe(20);
+    expect(betInfo(t.game, 'a')).toMatchObject({ toCall: 20, minTo: 40 });
+    t.act({ uid: 'a', type: 'call' });
+    t.act({ uid: 'b', type: 'call' });
+    expect(t.game.phase).toBe('FLOP'); // c はオールインなので、残りの2人で続く
+    expect(buildPots(t.game).map((p) => [p.amount, p.eligible.length, p.refund])).toEqual([[24, 3, false], [24, 2, false]]);
   });
 });
 
@@ -276,6 +281,69 @@ describe('ショーダウン', () => {
     expect(t.game.ended).toBe(true);
     expect(t.game.handResult.uncontested).toBe(true);
     expect(t.game.chips[first]).toBe(1480);
+  });
+});
+
+describe('サイドポットの段・返却・脱落順・非公開情報', () => {
+  it('3段のサイドポットと、誰にも受けてもらえなかったベットの返却', () => {
+    const t = table(['a', 'b', 'c', 'd'], { chips: { a: 100, b: 200, c: 400, d: 1000 } });
+    // 全員がオールイン（100・200・400・1000）。出した額の段ごとに4つのポットができ、1000 の人の超過分は戻る
+    while (t.game.phase === 'PREFLOP') t.act({ uid: t.game.turnUid, type: 'allin' });
+    expect(t.game.phase).toBe('SHOWDOWN');
+    const pots = buildPots(t.game);
+    expect(pots.map((p) => [p.amount, p.eligible.length, p.refund])).toEqual([[400, 4, false], [300, 3, false], [400, 2, false], [600, 1, true]]);
+    t.showAll();
+    const r = getResult(t.game);
+    expect(Object.values(t.game.chips).reduce((a, b) => a + b, 0)).toBe(1700);
+    expect(r.handResult.pots.find((p) => p.refund).winners).toEqual(['d']);
+    expect(r.chips.d).toBeGreaterThanOrEqual(600);
+  });
+
+  it('同じハンドで複数人が脱落したら、開始時のチップが多かった人が上位', () => {
+    const t = table(['a', 'b', 'c'], {
+      chips: { a: 300, b: 100, c: 1000 },
+      // ボタンは a → b=S2 H2、c=SA HA、a=SK HK。場は B 低い札で c が勝つ
+      deck: stack('S2', 'SA', 'SK', 'H2', 'HA', 'HK', 'C3', 'D5', 'D7', 'D9', 'C4', 'DJ', 'C6', 'S9'),
+    });
+    while (t.game.phase === 'PREFLOP') t.act({ uid: t.game.turnUid, type: 'allin' });
+    t.showAll();
+    const r = getResult(t.game);
+    expect(r.busted).toEqual(['b', 'a']); // 先に脱落するのは開始時チップが少なかった b
+    expect(r.ranking).toEqual(['c', 'a', 'b']);
+    expect(r.titles.c).toBe('優勝');
+    expect(r.matchOver).toBe(true);
+  });
+
+  it('途中のハンドの階級欄は手元のチップ、脱落者は「脱落」', () => {
+    const t = table(['a', 'b', 'c'], { chips: { a: 1000, b: 1000, c: 20 } });
+    t.act({ uid: 'a', type: 'fold' });
+    t.act({ uid: 'b', type: 'fold' });
+    const r = getResult(t.game);
+    expect(r.titles.c).toMatch(/枚$/);
+  });
+
+  it('公開情報（game と log）に、公開されていない手札や山札が出ない', () => {
+    const t = table(['a', 'b', 'c']);
+    const secret = new Set([...Object.values(t.hands).flat(), ...t.deck]);
+    const seen = [];
+    while (!t.game.ended) {
+      const u = t.game.turnUid;
+      const r = t.act({ uid: u, type: t.game.phase === 'SHOWDOWN' ? 'show' : betInfo(t.game, u).canCheck ? 'check' : 'call' });
+      seen.push(JSON.stringify([t.game, r.log]));
+    }
+    const board = new Set(t.game.board);
+    const shown = new Set(Object.values(t.game.shown).flat());
+    for (const text of seen) {
+      for (const c of secret) {
+        if (!text.includes(`"${c}"`)) continue;
+        expect(board.has(c) || shown.has(c)).toBe(true); // 出てよいのは場と公開された手札だけ
+      }
+    }
+    // ハンドの途中（ショーダウン前）には、手札のカードが一切含まれない
+    const early = table(['a', 'b', 'c']);
+    const text = JSON.stringify(early.game);
+    for (const c of Object.values(early.hands).flat()) expect(text.includes(`"${c}"`)).toBe(false);
+    for (const c of early.deck) expect(text.includes(`"${c}"`)).toBe(false);
   });
 });
 

@@ -1,7 +1,6 @@
 import { cardView } from '../../common/ui/cards.js';
 import { h } from '../../common/ui/h.js';
-import { reasonText } from './messages.js';
-import { BLIND_LEVELS, betInfo, blindsFor, canPlay } from './rules.js';
+import { betInfo, blindsFor, canPlay } from './rules.js';
 
 const fmt = (n) => n.toLocaleString('ja-JP');
 
@@ -32,7 +31,7 @@ function community(game) {
 function raiseControls({ game, info, uid, busy, send }) {
   const { minTo, maxTo } = info;
   const verb = game.currentBet > 0 ? 'レイズ' : 'ベット';
-  const key = `${game.handNo}:${game.phase}:${game.currentBet}:${uid}`;
+  const key = `${game.handNo}:${game.phase}:${game.currentBet}:${uid}:${minTo}:${maxTo}`;
   if (draft.key !== key) draft = { key, to: minTo };
   draft.to = Math.min(Math.max(draft.to, minTo), maxTo);
 
@@ -118,4 +117,3 @@ export function Board({ game, hand, uid, names, onAction, busy }) {
   );
 }
 
-export { reasonText, BLIND_LEVELS };
