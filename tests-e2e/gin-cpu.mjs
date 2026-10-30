@@ -20,7 +20,6 @@ await p.click('.game-tile:has-text("大富豪")');
 ok((await p.locator('.game-detail .cpu-row').count()) === 1, '大富豪にもCPU対戦の欄が出る');
 await p.click('.game-tile:has-text("ジン・ラミー")');
 await p.click(`.levels [data-level="${LEVEL}"]`);
-await p.click('.game-tile:has-text("ジン・ラミー")');
 await p.click('.game-detail button:has-text("CPUと対戦")');
 await p.waitForSelector('.board.gin');
 ok((await p.locator('.hand .card').count()) === 10, '手札10枚が配られた');

@@ -20,7 +20,6 @@ await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
 await p.click('.game-tile:has-text("テキサスホールデム")');
 await p.click(`.levels [data-level="${LEVEL}"]`);
-await p.click('.game-tile:has-text("テキサスホールデム")');
 await p.click('.game-detail button:has-text("CPU3人と対戦")');
 await p.waitForSelector('.board.holdem');
 ok((await p.locator('.opp-name', { hasText: `（${LABEL}）` }).count()) === 3, `相手は CPU3人（${LABEL}）`);

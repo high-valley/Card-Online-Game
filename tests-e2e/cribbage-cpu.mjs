@@ -21,7 +21,6 @@ await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
 await p.click('.game-tile:has-text("クリベッジ")');
 await p.click(`.levels [data-level="${LEVEL}"]`);
-await p.click('.game-tile:has-text("クリベッジ")');
 await p.click('.game-detail button:has-text("CPUと対戦")');
 await p.waitForSelector('.board.cribbage');
 ok((await p.locator('.hand .card').count()) === 6, '手札6枚が配られた');
