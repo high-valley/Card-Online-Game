@@ -17,7 +17,8 @@ const ok = (c, msg) => { if (!c) throw new Error(`FAIL: ${msg}`); console.log(`o
 
 await host.goto(URL0);
 await host.fill('input[placeholder="ニックネーム"]', names[0]);
-await host.click('li:has-text("大富豪") button:has-text("ルームを作る")');
+await host.click('.game-tile:has-text("大富豪")');
+await host.click('.game-detail button:has-text("ルームを作る")');
 await host.waitForSelector('text=参加者（1/5）');
 const invite = await host.inputValue('.invite input');
 for (const [i, g] of guests.entries()) {

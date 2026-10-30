@@ -17,7 +17,8 @@ const [host, guest] = [await mk(), await mk()];
 
 await host.goto(URL0);
 await host.fill('input[placeholder="ニックネーム"]', 'ホスト');
-await host.click('li:has-text("ジン・ラミー") button:has-text("ルームを作る")');
+await host.click('.game-tile:has-text("ジン・ラミー")');
+await host.click('.game-detail button:has-text("ルームを作る")');
 await host.waitForSelector('text=参加者（1/2）');
 const invite = await host.inputValue('.invite input');
 await guest.goto(invite);

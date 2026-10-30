@@ -18,8 +18,9 @@ const shot = (name) => process.env.SHOTS && p.screenshot({ path: `${process.env.
 
 await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
-await p.selectOption('li:has-text("テキサスホールデム") .cpu-row select', LEVEL);
-await p.click('li:has-text("テキサスホールデム") button:has-text("CPU3人と対戦")');
+await p.click('.game-tile:has-text("テキサスホールデム")');
+await p.click(`.levels [data-level="${LEVEL}"]`);
+await p.click('.game-detail button:has-text("CPU3人と対戦")');
 await p.waitForSelector('.board.holdem');
 ok((await p.locator('.opp-name', { hasText: `（${LABEL}）` }).count()) === 3, `相手は CPU3人（${LABEL}）`);
 ok((await p.locator('.hand .card').count()) === 2, '手札が2枚');
@@ -52,6 +53,6 @@ while (Date.now() < deadline && hands < HANDS) {
 }
 ok(hands >= 1, `${hands}ハンド最後まで進んだ（あなたの操作 ${moves} 回）`);
 await p.click('button:has-text("ゲームを終了"), button:has-text("ルームを出る")');
-await p.waitForSelector('text=ゲームを選んでルームを作る');
+await p.waitForSelector('text=ゲームを選ぶ');
 ok(true, 'トップに戻れた');
 await browser.close();

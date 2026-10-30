@@ -20,7 +20,8 @@ const toast = async () => (await p.locator('.notice').innerText().catch(() => ''
 
 await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
-await p.click('li:has-text("クリベッジ") button:has-text("CPUと対戦")');
+await p.click('.game-tile:has-text("クリベッジ")');
+await p.click('.game-detail button:has-text("CPUと対戦")');
 await p.waitForSelector('.board.cribbage');
 await p.waitForFunction(() => document.querySelector('.hint')?.textContent.includes('クリブに置く'));
 ok((await p.locator('.hand .card').count()) === 6, '手札6枚');
