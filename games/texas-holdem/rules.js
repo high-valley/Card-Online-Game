@@ -215,10 +215,11 @@ export function buildPots(g) {
   let prev = 0;
   for (const level of levels) {
     const amount = sum(g.order.map((u) => Math.min(g.total[u] ?? 0, level) - Math.min(g.total[u] ?? 0, prev)));
-    const eligible = g.order.filter((u) => isLive(g, u) && (g.total[u] ?? 0) >= level);
     const last = pots[pots.length - 1];
-    // その段に出したのが1人だけなら、誰にも受けてもらえなかったベット（本人に戻る）
-    const refund = g.order.filter((u) => (g.total[u] ?? 0) > prev).length === 1;
+    // その段に出したのが1人だけなら、誰にも受けてもらえなかったベット。本人に戻す（そのあと降りていても戻す）
+    const above = g.order.filter((u) => (g.total[u] ?? 0) > prev);
+    const refund = above.length === 1;
+    const eligible = refund ? above : g.order.filter((u) => isLive(g, u) && (g.total[u] ?? 0) >= level);
     // 争う人が同じ（降りた人の少額で段が分かれただけ）なら、ひとつのポットにまとめる
     if (last && !refund && !last.refund && (eligible.length === 0 || eligible.join() === last.eligible.join())) last.amount += amount;
     else pots.push({ amount, eligible, refund });
@@ -227,10 +228,18 @@ export function buildPots(g) {
   return pots;
 }
 
+/** 1人を残して全員が降りた。受けてもらえなかった他の人のベットはその人に戻し、残りを勝者が取る */
 function endUncontested(g, winner) {
-  const amount = potOf(g);
+  const refunds = buildPots(g).filter((p) => p.refund && p.eligible[0] !== winner);
+  for (const p of refunds) g.chips[p.eligible[0]] += p.amount;
+  const amount = potOf(g) - sum(refunds.map((p) => p.amount));
   g.chips[winner] += amount;
-  g.handResult = { uncontested: true, pots: [{ amount, eligible: [winner], winners: [winner] }], awards: { [winner]: amount }, hands: {} };
+  g.handResult = {
+    uncontested: true,
+    pots: [{ amount, eligible: [winner], winners: [winner] }, ...refunds.map((p) => ({ amount: p.amount, eligible: p.eligible, winners: p.eligible, refund: true }))],
+    awards: { [winner]: amount },
+    hands: {},
+  };
   finish(g);
 }
 
@@ -250,10 +259,12 @@ function resolve(g) {
     hands[u] = { name: b.name, cards: b.cards, score: b.score };
   }
   const awards = {};
+  let prevWinners = [];
   const pots = buildPots(g).map((pot) => {
     const contenders = pot.eligible.filter((u) => hands[u]);
     const top = Math.max(...contenders.map((u) => hands[u].score));
-    const winners = contenders.filter((u) => hands[u].score === top);
+    // 返却分は出した本人へ。争う人がいない段（念のため）は、ひとつ下のポットの勝者へ
+    const winners = pot.refund ? pot.eligible : contenders.length > 0 ? contenders.filter((u) => hands[u].score === top) : prevWinners;
     // 割り切れない端数は、ボタンに近い（左隣から数えて早い）勝者から1枚ずつ
     const ordered = Array.from({ length: g.order.length }, (_, k) => g.order[(g.order.indexOf(g.dealer) + 1 + k) % g.order.length]).filter((u) => winners.includes(u));
     const share = Math.floor(pot.amount / winners.length);
@@ -263,6 +274,7 @@ function resolve(g) {
       awards[u] = (awards[u] ?? 0) + got;
       g.chips[u] += got;
     }
+    if (!pot.refund) prevWinners = winners;
     return { amount: pot.amount, eligible: pot.eligible, winners: ordered, refund: pot.refund };
   });
   g.handResult = { uncontested: false, pots, awards, hands: Object.fromEntries(Object.entries(hands).map(([u, h]) => [u, { name: h.name, cards: h.cards }])) };

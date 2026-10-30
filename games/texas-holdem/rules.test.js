@@ -299,6 +299,32 @@ describe('サイドポットの段・返却・脱落順・非公開情報', () =
     expect(r.chips.d).toBeGreaterThanOrEqual(600);
   });
 
+  it('BB が満額に足りずオールインし、SB が降りても、SB の受けてもらえなかった分は SB に戻る（ショーダウン）', () => {
+    // ブラインド 2000/4000。BB（b）は 830 しかない。c は 160 しかなくコールでオールイン。SB（a）は 4000 に満たないまま降りる
+    const t = table(['c', 'a', 'b'], { chips: { c: 160, a: 12510, b: 830 }, handNo: 65, options: { levelHands: 5 } });
+    expect(t.game.blinds).toMatchObject({ sb: 2000, bb: 4000 });
+    expect(t.game.sbUid).toBe('a');
+    t.act({ uid: 'c', type: 'call' });
+    t.act({ uid: 'a', type: 'fold' });
+    t.showAll();
+    expect(t.game.ended).toBe(true);
+    const refund = t.game.handResult.pots.find((p) => p.refund);
+    expect(refund).toMatchObject({ amount: 1170, winners: ['a'] });
+    expect(t.game.chips.a).toBe(12510 - 2000 + 1170);
+    expect(Object.values(t.game.chips).reduce((x, y) => x + y, 0)).toBe(13500);
+  });
+
+  it('1人を残して全員が降りたときも、降りた人の受けてもらえなかった分はその人に戻る', () => {
+    const t = table(['c', 'a', 'b'], { chips: { c: 5000, a: 12510, b: 830 }, handNo: 65, options: { levelHands: 5 } });
+    t.act({ uid: 'c', type: 'fold' });
+    t.act({ uid: 'a', type: 'fold' });
+    expect(t.game.ended).toBe(true);
+    expect(t.game.handResult.uncontested).toBe(true);
+    expect(t.game.chips.b).toBe(830 + 830);
+    expect(t.game.chips.a).toBe(12510 - 830);
+    expect(Object.values(t.game.chips).reduce((x, y) => x + y, 0)).toBe(18340);
+  });
+
   it('同じハンドで複数人が脱落したら、開始時のチップが多かった人が上位', () => {
     const t = table(['a', 'b', 'c'], {
       chips: { a: 300, b: 100, c: 1000 },
