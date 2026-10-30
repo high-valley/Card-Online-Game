@@ -112,6 +112,7 @@ function applyModel(model) {
     app.handOrder = null;
     app.selected.clear();
   }
+  if (status !== prevStatus) app.menuOpen = false; // 画面が変わったらメニューは閉じる
   trackFresh(model);
   playSounds(model);
   if (status) prevStatus = status;
@@ -211,6 +212,7 @@ function autoAct(model) {
 }
 
 function detach() {
+  app.menuOpen = false;
   local?.stop();
   local = null;
   autoSent = null;
@@ -283,6 +285,11 @@ const actions = {
       enter(id);
     });
   },
+  /** ゲーム画面のメニュー（ゲームの終了など）を開く・閉じる */
+  toggleMenu() {
+    app.menuOpen = !app.menuOpen;
+    render();
+  },
   /** 自動で次へ進むのを、この決着だけ止める（結果をゆっくり見たいとき） */
   pauseNext() {
     clearTimeout(nextTimer);
@@ -322,6 +329,7 @@ const actions = {
     return run(() => backToLobby(app.roomId));
   },
   endGame() {
+    app.menuOpen = false;
     if (local) {
       if (confirm('CPU対戦を途中でやめて、トップに戻ります。よろしいですか？')) actions.leave();
       return;

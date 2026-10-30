@@ -32,6 +32,7 @@ await host.click('button:has-text("ゲーム開始")');
 await Promise.all(pages.map((p) => p.waitForSelector('.board')));
 
 ok((await a.locator('button:has-text("ゲームを終了")').count()) === 0, 'ホスト以外には終了ボタンが出ない');
+await host.click('.topbar button:has-text("メニュー")');
 await host.click('button:has-text("ゲームを終了")');
 await Promise.all(pages.map((p) => p.waitForSelector('button:has-text("ルームを出る")')));
 ok((await host.locator('button:has-text("ゲーム開始")').count()) === 1, 'ホストは待機画面に戻り、再び開始できる');

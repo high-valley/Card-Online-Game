@@ -50,11 +50,13 @@ await p.click('.hand-tools button:has-text("自動整列")');
 ok(JSON.stringify(await ids()) === JSON.stringify(before), '「自動整列」で最初の並びに戻る');
 
 // 効果音の切り替え（保存される）
-ok((await p.locator('.hand-tools button:has-text("効果音 ON")').count()) === 1, '効果音は初期ON');
-await p.click('.hand-tools button:has-text("効果音 ON")');
-ok((await p.locator('.hand-tools button:has-text("効果音 OFF")').count()) === 1, 'OFFにできる');
+// 上のバーの効果音ボタンは、アイコンと押した状態（aria-pressed）で ON/OFF を表す
+const soundBtn = p.locator('.hand-tools button:has-text("効果音")');
+ok((await soundBtn.getAttribute('aria-pressed')) === 'true', '効果音は初期ON');
+await soundBtn.click();
+ok((await p.locator('.hand-tools button:has-text("効果音")').getAttribute('aria-pressed')) === 'false', 'OFFにできる');
 ok((await p.evaluate(() => localStorage.getItem('cards.muted'))) === '1', '設定が保存される');
-await p.click('.hand-tools button:has-text("効果音 OFF")');
+await p.click('.hand-tools button:has-text("効果音")');
 
 // 引くとカードが現れるアニメーションが動く
 const n0 = Number((await p.evaluate(() => document.getElementById('app').dataset.anims)) ?? 0);
@@ -96,7 +98,8 @@ await p.click('.modal .close');
 const move = await p.locator('.opp-move span').first().innerText();
 ok(/引き|取り|パス/.test(move) && move.endsWith('ました') && (await p.locator('.opp-move strong').innerText()).includes('CPU'), `相手の直前の手が表示される（${move.replace(/\n+/g, ' ')}）`);
 
-// トップ画面からも見られる
+// トップ画面からも見られる（ゲームの終了はメニューの中）
+await p.click('.topbar button:has-text("メニュー")');
 await p.click('.end-game');
 await p.waitForSelector('text=ゲームを選ぶ');
 await p.click('.game-tile:has-text("大富豪")');

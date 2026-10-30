@@ -3,7 +3,9 @@ import { cardView } from '../ui/cards.js';
 import { enableDnd, nearestCard } from '../ui/dnd.js';
 import { applyOrder, moveCard } from '../ui/handOrder.js';
 import { isMuted } from '../ui/sound.js';
+import { avatarView } from '../ui/avatars.js';
 import { h } from '../ui/h.js';
+import { icon } from '../ui/icons.js';
 
 const STALE_MS = 60_000;
 
@@ -18,8 +20,6 @@ function logLine(entry, names, mod) {
   return fx.length ? `${base}（${fx.join('・')}）` : base;
 }
 
-/** 名前から決まる色相（アイコンの色分け用） */
-const hueOf = (name) => [...name].reduce((a, c) => (a * 31 + c.codePointAt(0)) % 360, 17);
 
 /** マッチの途中の決着のあと：次へ進むまでの残り時間（バーが縮む）と、すぐ次へ・止めるボタン */
 function nextBar({ app, mod, result, isHost, actions }) {
@@ -29,13 +29,14 @@ function nextBar({ app, mod, result, isHost, actions }) {
   const left = running ? Math.max(0, next.at - Date.now()) : 0;
   return h(
     'div',
-    { class: `round-next${running ? ' running' : ''}` },
-    running && h('div', { class: 'next-bar', 'aria-hidden': 'true' }, h('span', { style: `animation-duration:${next.ms}ms;animation-delay:-${next.ms - left}ms` })),
-    isHost
-      ? h('div', { class: 'next-row' },
-          h('button', { class: 'primary', disabled: app.busy, onClick: () => actions.start() }, running ? `すぐ${label}へ` : label),
-          running && h('button', { class: 'link', onClick: () => actions.pauseNext() }, '止める'))
-      : h('p', { class: 'sub' }, running ? `まもなく${label}が始まります` : 'ホストの操作を待っています…'),
+    { class: `round-next panel${running ? ' running' : ''}` },
+    h('div', { class: 'next-time' },
+      h('span', { class: 'label' }, running ? `${label}まで` : isHost ? '止めています' : 'ホストの操作を待っています…'),
+      running && h('div', { class: 'next-bar', 'aria-hidden': 'true' }, h('span', { style: `animation-duration:${next.ms}ms;animation-delay:-${next.ms - left}ms` }))),
+    isHost &&
+      h('div', { class: 'next-row' },
+        h('button', { class: 'primary', disabled: app.busy, onClick: () => actions.start() }, icon(running ? 'forward' : 'play'), running ? `すぐ${label}へ` : label),
+        running && h('button', { class: 'link small', onClick: () => actions.pauseNext() }, '止める')),
   );
 }
 
@@ -75,18 +76,22 @@ export function gameScreen({ app, model, actions }) {
   const screen = h(
     'main',
     { class: 'screen game' },
-    // 上のバー：ゲーム名・ルール・音・並べ替え・終了
+    // 上のバー：ゲーム名と、並べ替え・ルール・音・メニュー（ゲームの終了など）
     h(
       'div',
       { class: 'hand-tools topbar' },
-      h('span', { class: 'brand' }, mod.name),
+      h('span', { class: 'brand' }, mod.emblem && h('span', { class: `brand-mark${mod.emblem.red ? ' red' : ''}`, 'aria-hidden': 'true' }, mod.emblem.mark), mod.name),
       h('span', { class: 'spacer' }),
-      app.handOrder && h('button', { class: 'link', onClick: () => actions.autoSort() }, '自動整列'),
-      mod.rulebook && h('button', { class: 'link', onClick: () => actions.showRules(room.gameId, g.options) }, 'ルール'),
-      h('button', { class: 'link', 'aria-pressed': String(!isMuted()), onClick: () => actions.toggleSound() }, isMuted() ? '効果音 OFF' : '効果音 ON'),
-      isHost && h('button', { class: 'link end-game', disabled: app.busy, onClick: () => actions.endGame() }, 'ゲームを終了'),
+      app.handOrder && h('button', { class: 'tool', onClick: () => actions.autoSort() }, icon('sort'), h('span', null, '自動整列')),
+      mod.rulebook && h('button', { class: 'tool', onClick: () => actions.showRules(room.gameId, g.options) }, icon('help'), h('span', null, 'ルール')),
+      h('button', { class: 'tool', 'aria-pressed': String(!isMuted()), onClick: () => actions.toggleSound() }, icon(isMuted() ? 'mute' : 'sound'), h('span', null, '効果音')),
+      h('button', { class: 'tool', 'aria-expanded': String(!!app.menuOpen), onClick: () => actions.toggleMenu() }, icon(app.menuOpen ? 'close' : 'menu'), h('span', null, 'メニュー')),
+      app.menuOpen &&
+        h('div', { class: 'menu-pop', role: 'menu' },
+          isHost && h('button', { class: 'end-game', role: 'menuitem', disabled: app.busy, onClick: () => actions.endGame() }, icon('stop'), 'ゲームを終了'),
+          !isHost && h('button', { role: 'menuitem', onClick: () => actions.leave() }, icon('exit'), 'ルームを出る')),
     ),
-    h(
+    !mod.seatsInBoard && h(
       'div',
       { class: 'opponents' },
       players.map((p) => {
@@ -95,7 +100,7 @@ export function gameScreen({ app, model, actions }) {
         return h(
           'div',
           { class: `opp${p.uid === turn ? ' turn' : ''}${st.out ? ' out' : ''}${p.uid === uid ? ' self' : ''}` },
-          h('div', { class: 'avatar', style: `--hue:${hueOf(p.name)}`, 'aria-hidden': 'true' }, [...p.name][0] ?? '?'),
+          avatarView(p, { size: '40px' }),
           h('div', { class: 'opp-name' }, p.name, p.uid === uid && '（自分）'),
           h('div', { class: 'opp-count' }, st.text),
           fan > 0 && h('div', { class: 'opp-fan', 'aria-hidden': 'true' }, Array.from({ length: fan }, () => h('span', { class: 'mini-back' }))),
@@ -107,6 +112,8 @@ export function gameScreen({ app, model, actions }) {
       game: g, hand, uid, selected, names, busy: app.busy, fresh: [...app.fresh], log: state.log,
       onAction: (action) => actions.act(action),
       handEl: mod.handInBoard ? handEl : undefined,
+      players: mod.seatsInBoard ? players : undefined,
+      turnUid: turn,
     }),
     between && nextBar({ app, mod, result: state.result, isHost, actions }),
     app.notice && h('p', { class: 'notice', role: 'status' }, app.notice),

@@ -53,6 +53,7 @@ if (!process.env.APP_URL) {
   const f = (await res.json()).fields.game.mapValue.fields.options.mapValue.fields;
   ok(f.revolution.booleanValue === false && f.lock.booleanValue === true && f.eightCut.booleanValue === true, '配布時の設定がゲーム状態に入っている');
 }
+await host.click('.topbar button:has-text("メニュー")').catch(() => {});
 await host.click('button:has-text("ゲームを終了")').catch(() => {});
 await host.waitForSelector('button:has-text("ゲーム開始")', { timeout: 15000 }).catch(() => {});
 ok(!(await checked(host, 'revolution')) && (await checked(host, 'lock')), '終了して待機に戻っても設定は保たれる');
