@@ -140,7 +140,8 @@ function seatView({ game, player, spot, turnUid, crowded }) {
   return h(
     'div',
     {
-      class: `seat${u === turnUid ? ' turn' : ''}${state ? ` is-${state === 'オールイン' ? 'allin' : state === '脱落' ? 'out' : 'folded'}` : ''}${isWinner(game, u) ? ' winner' : ''}`,
+      // ベット額は名札の横に出す（右側の席は左へ、それ以外は右へ）。下に出すとポットの表示に重なる
+      class: `seat${spot.x > 55 ? ' bet-left' : ''}${u === turnUid ? ' turn' : ''}${state ? ` is-${state === 'オールイン' ? 'allin' : state === '脱落' ? 'out' : 'folded'}` : ''}${isWinner(game, u) ? ' winner' : ''}`,
       style: `left:${spot.x}%;top:${spot.y}%`,
     },
     cards,

@@ -65,6 +65,7 @@
  * @property {(props: {options: Object, onChange: (patch: Object) => void, readOnly: boolean}) => HTMLElement} [OptionsForm]  待機画面のルール設定フォーム。readOnly のときはホスト以外向けの表示だけ
  * @property {(result: GameResult) => number|null} [autoNextMs]  マッチの途中の結果（1ハンド・1ラウンドの決着）なら、結果画面に切り替えずゲーム画面のまま見せて、この時間（ミリ秒）のあとに自動で次へ進める。null なら今までどおり結果画面
  * @property {(result: GameResult, uid: string) => string|null} [roundSound]  autoNextMs で進むときに鳴らす効果音（省略時は鳴らさない）
+ * @property {boolean} [hideLog]  true なら、画面の下の「直近の出来事」（他の人の操作の履歴）を出さない
  * @property {boolean} [seatsInBoard]  true なら、共通の相手欄を出さず、Board に players を渡して卓の上に席を並べてもらう（ホールデムなど）
  * @property {boolean} [handInBoard]  true なら、自分の手札の要素を Board の handEl に渡し、Board の中に置いてもらう（手札が少なく、操作より上に見せたいゲーム。ホールデムなど）
  * @property {(props: {game: Object, hand: CardId[], uid: string, selected: CardId[], names: Object<string,string>, onAction: (action: Object) => void, busy: boolean, handEl?: HTMLElement}) => HTMLElement} Board  ゲーム画面の中央部分

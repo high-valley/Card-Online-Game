@@ -325,6 +325,8 @@ body.modal-open { overflow: hidden; }
 .mk.dealer { background: radial-gradient(circle at 40% 35%, #fff, #d9d9d9); color: #222; border: 2px solid #999; }
 .mk.blind { background: radial-gradient(circle at 40% 35%, #4d8cff, #1745b0); color: #fff; border: 2px solid #b9d0ff; }
 .seat-bet { display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; padding: 1px 7px 1px 3px; border-radius: 999px; background: rgba(0, 0, 0, .55); color: var(--gold-hi); font-size: .72rem; font-weight: 900; }
+.seat > .seat-bet { position: absolute; bottom: 4px; left: calc(100% - 8px); margin: 0; white-space: nowrap; z-index: 4; }
+.seat.bet-left > .seat-bet { left: auto; right: calc(100% - 8px); }
 .chip-dot { width: 13px; height: 13px; border-radius: 50%; background: #c8242c; border: 2px dashed #fff; box-sizing: border-box; }
 .poker-table.crowded .seat { width: 70px; } .poker-table.crowded .seat-plate { min-width: 60px; padding: 7px 5px 2px; }
 .poker-table.crowded .seat-plate .opp-name { font-size: .58rem; } .poker-table.crowded .seat-plate .opp-count { font-size: .74rem; }
@@ -362,11 +364,11 @@ body.modal-open { overflow: hidden; }
 .my-delta.plus { color: var(--ok); } .my-delta.minus { color: var(--danger); }
 
 /* 操作：赤・緑・金のボタンと、レイズ額 */
-.holdem-actions, .holdem-idle { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; max-width: 640px; margin-inline: auto; min-height: 188px; }
+.holdem-actions, .holdem-idle { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; max-width: 640px; margin-inline: auto; min-height: 204px; }
 .board .holdem-actions .hint, .board .holdem-idle .hint { align-self: center; font-size: .82rem; padding: 3px 14px; min-height: 0; }
 .main-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 8px; }
-.main-row button { min-height: 56px; min-width: 0; flex-direction: column; gap: 0; font-size: 1.12rem; font-weight: 900; line-height: 1.15; border-radius: 14px; padding: 4px 6px; }
-.main-row .btn-amount { font-size: .95rem; }
+.main-row button { min-height: 44px; min-width: 0; flex-direction: row; gap: .3em; font-size: 1.02rem; font-weight: 900; line-height: 1.1; border-radius: 12px; padding: 4px 6px; white-space: nowrap; }
+.main-row .btn-amount { font-size: .92rem; }
 .holdem-idle button:disabled { opacity: .38; filter: saturate(.6); }
 .raise-box { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 14px; background: rgba(0, 0, 0, .35); border: 1px solid var(--line-gold); }
 .raise-row { display: flex; gap: 10px; align-items: center; } .raise-row .label { white-space: nowrap; }

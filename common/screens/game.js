@@ -118,7 +118,7 @@ export function gameScreen({ app, model, actions }) {
     between && nextBar({ app, mod, result: state.result, isHost, actions }),
     app.notice && h('p', { class: 'notice', role: 'status' }, app.notice),
     !mod.handInBoard && handEl,
-    h('ol', { class: 'log', 'aria-label': '直近の出来事' }, state.log.slice(-4).reverse().map((e) => h('li', null, logLine(e, names, mod)))),
+    !mod.hideLog && h('ol', { class: 'log', 'aria-label': '直近の出来事' }, state.log.slice(-4).reverse().map((e) => h('li', null, logLine(e, names, mod)))),
   );
 
   // ドラッグ＆ドロップ：手札の並べ替え、そして「引く・捨てる・出す」をゲームごとの dropAction で行う
