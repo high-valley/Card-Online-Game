@@ -55,12 +55,15 @@ let hands = 0;
 let sawFlop = false;
 const deadline = Date.now() + Number(process.env.DEADLINE_MS ?? 120_000);
 while (Date.now() < deadline && hands < 2) {
-  if (await host.locator('table.result').count()) {
+  if (await host.locator('.hand-summary').count()) {
+    // 1ハンドの決着は、全員の卓の上に出る（結果画面には切り替わらない）。ホストが「すぐ次のハンドへ」で進める
     hands++;
-    console.log(`ハンド${hands}の結果:`, (await host.locator('main').innerText()).replace(/\n+/g, ' / ').slice(0, 260));
+    console.log(`ハンド${hands}の結果:`, (await host.locator('.hand-summary').innerText()).replace(/\n+/g, ' / '));
+    ok((await Promise.all(pages.map((p) => p.locator('.hand-summary').count()))).every((n) => n === 1) && (await host.locator('table.result').count()) === 0, '決着は全員の卓の上に出る');
+    ok((await pages[1].locator('.round-next button').count()) === 0, 'ホスト以外には次へのボタンが出ない');
     if (hands < 2) {
-      await host.click('button:has-text("次のハンド")');
-      await Promise.all(pages.map((p) => p.waitForSelector('.board.holdem')));
+      await host.click('.round-next button.primary');
+      await Promise.all(pages.map((p) => p.waitForSelector('.hand-summary', { state: 'detached' })));
     }
     continue;
   }

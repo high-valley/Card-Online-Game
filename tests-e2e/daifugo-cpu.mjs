@@ -80,10 +80,11 @@ ok((await p.locator('.hand .card').count()) > 0, '次のゲームが配られた
 await p.click('button:has-text("ゲームを終了")');
 await p.waitForSelector('text=ゲームを選ぶ');
 ok(true, '途中でやめるとトップに戻る');
-await p.click('li:has-text("大富豪") button:has-text("CPU3人と対戦")');
+await p.click('.game-tile:has-text("大富豪")');
+await p.click('.game-detail button:has-text("CPU3人と対戦")');
 await p.waitForSelector('.options');
 ok(await p.locator('input[name="revolution"]').isChecked(), '始め直すと、設定は初期値に戻る');
 await p.click('button:has-text("トップへ")');
-await p.waitForSelector('text=ゲームを選んでルームを作る');
+await p.waitForSelector('text=ゲームを選ぶ');
 ok(true, '設定画面から「トップへ」で戻れる');
 await browser.close();

@@ -62,6 +62,29 @@ function raiseControls({ game, info, uid, busy, send }) {
   );
 }
 
+/** ハンドの決着：誰がいくら取ったか（役つき）、戻った分、自分の増減。結果画面に切り替えずに卓の上で見せる */
+function handSummary(game, uid, name) {
+  const hr = game.handResult;
+  if (!hr) return null;
+  const won = new Map(); // 勝者ごとの獲得額（返却分は別に出す）
+  for (const p of hr.pots.filter((x) => !x.refund)) {
+    const share = Math.floor(p.amount / p.winners.length);
+    p.winners.forEach((u, i) => won.set(u, (won.get(u) ?? 0) + share + (i < p.amount - share * p.winners.length ? 1 : 0)));
+  }
+  const delta = game.chips[uid] - (game.startChips[uid] ?? 0);
+  return h(
+    'div',
+    { class: 'hand-summary', role: 'status' },
+    [...won].map(([u, amount]) =>
+      h('p', { class: `won${u === uid ? ' me' : ''}` },
+        h('strong', null, `${u === uid ? 'あなた' : name(u)} が ${fmt(amount)} を獲得`),
+        hr.uncontested ? h('span', { class: 'sub' }, '（他の人が降りました）') : hr.hands[u] && h('span', { class: 'hand-name' }, hr.hands[u].name)),
+    ),
+    hr.pots.filter((p) => p.refund).map((p) => h('p', { class: 'sub' }, `${name(p.winners[0])} の ${fmt(p.amount)} は受けてもらえなかったので戻りました`)),
+    game.dealt.includes(uid) && delta !== 0 && h('span', { class: `delta ${delta > 0 ? 'plus' : 'minus'}` }, `あなた ${delta > 0 ? '+' : ''}${fmt(delta)}`),
+  );
+}
+
 /** テキサスホールデムのゲーム画面中央：ブラインド・場のカード・ポット・各自のベット・操作 */
 export function Board({ game, hand, uid, names, onAction, busy, handEl }) {
   const mine = game.turnUid === uid;
@@ -103,11 +126,11 @@ export function Board({ game, hand, uid, names, onAction, busy, handEl }) {
       h(
         'div',
         { class: 'shown-hands' },
-        shown.map(([u, cards]) => h('div', { class: 'shown' }, h('span', { class: 'sub' }, name(u)), h('span', { class: 'shown-cards' }, cards.map((c) => cardView(c, { small: true, anim: 'drop', key: `shown:${game.handNo}:${c}` }))))),
+        shown.map(([u, cards]) => h('div', { class: `shown${game.handResult?.pots.some((p) => !p.refund && p.winners.includes(u)) ? ' winner' : ''}` }, h('span', { class: 'sub' }, name(u)), h('span', { class: 'shown-cards' }, cards.map((c) => cardView(c, { small: true, anim: 'drop', key: `shown:${game.handNo}:${c}` }))))),
       ),
     // 自分の手札（共通画面から受け取り、場のカードと操作の間に大きく置く）
     hand.length > 0 && handEl,
-    h('div', { class: 'hint' }, hint),
+    game.ended ? handSummary(game, uid, name) : h('div', { class: 'hint' }, hint),
     betting &&
       h(
         'div',

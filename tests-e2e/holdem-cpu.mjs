@@ -21,6 +21,8 @@ await p.fill('input[placeholder="ニックネーム"]', 'あなた');
 await p.click('.game-tile:has-text("テキサスホールデム")');
 await p.click(`.levels [data-level="${LEVEL}"]`);
 await p.click('.game-detail button:has-text("CPU3人と対戦")');
+// ルール設定のあるゲームは、まず設定画面が出る（初期値のまま始める）
+await p.click('button:has-text("ゲーム開始")');
 await p.waitForSelector('.board.holdem');
 ok((await p.locator('.opp-name', { hasText: `（${LABEL}）` }).count()) === 3, `相手は CPU3人（${LABEL}）`);
 ok((await p.locator('.hand .card').count()) === 2, '手札が2枚');
@@ -32,13 +34,26 @@ let moves = 0;
 const deadline = Date.now() + Number(process.env.DEADLINE_MS ?? 180_000);
 while (Date.now() < deadline && hands < HANDS) {
   if (await p.locator('table.result').count()) {
+    // 結果画面に切り替わるのは、トーナメントが終わったときだけ
+    ok(await p.locator('button:has-text("新しいトーナメント")').count() === 1, 'トーナメントが終わったときだけ結果画面になる');
+    console.log('トーナメント終了');
     hands++;
-    console.log(`ハンド${hands}:`, (await p.locator('main').innerText()).replace(/\n+/g, ' / ').slice(0, 240));
+    break;
+  }
+  if (await p.locator('.hand-summary').count()) {
+    // 1ハンドの決着は、結果画面に切り替えず卓の上に出て、少し待つと自動で次のハンドが配られる
+    hands++;
+    console.log(`ハンド${hands}:`, (await p.locator('.hand-summary').innerText()).replace(/\n+/g, ' / '));
     await shot(`result${hands}`);
     if (hands >= HANDS) break;
-    if (await p.locator('button:has-text("新しいトーナメント")').count()) { console.log('トーナメント終了'); break; }
-    await p.click('button:has-text("次のハンド")');
-    await p.waitForSelector('.board.holdem');
+    if (hands === 1) {
+      ok((await p.locator('.round-next .next-bar').count()) === 1, '次のハンドまでの残り時間が出る');
+      await p.waitForSelector('.hand-summary', { state: 'detached', timeout: 12_000 });
+      ok(true, '何も押さなくても、次のハンドが配られた');
+    } else {
+      await p.click('.round-next button.primary'); // 「すぐ次のハンドへ」
+      await p.waitForSelector('.hand-summary', { state: 'detached' });
+    }
     continue;
   }
   const bar = p.locator('.holdem-actions');
