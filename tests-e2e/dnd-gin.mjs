@@ -25,7 +25,8 @@ const toast = async () => (await p.locator('.notice').innerText().catch(() => ''
 
 await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
-await p.click('li:has-text("ジン・ラミー") button:has-text("CPUと対戦")');
+await p.click('.game-tile:has-text("ジン・ラミー")');
+await p.click('.game-detail button:has-text("CPUと対戦")');
 await p.waitForSelector('.board.gin');
 
 // 自分の番まで待つ（最初の公開カードは、取るかパスで先へ進める）

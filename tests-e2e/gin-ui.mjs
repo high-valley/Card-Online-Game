@@ -14,7 +14,8 @@ const ids = () => p.locator('.hand .card').evaluateAll((els) => els.map((e) => e
 
 await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
-await p.click('li:has-text("ジン・ラミー") button:has-text("CPUと対戦")');
+await p.click('.game-tile:has-text("ジン・ラミー")');
+await p.click('.game-detail button:has-text("CPUと対戦")');
 await p.waitForSelector('.board.gin');
 
 const before = await ids();
@@ -97,8 +98,9 @@ ok(/引き|取り|パス/.test(move) && move.endsWith('ました') && (await p.l
 
 // トップ画面からも見られる
 await p.click('.end-game');
-await p.waitForSelector('text=ゲームを選んでルームを作る');
-await p.click('li:has-text("大富豪") button:has-text("ルールを見る")');
+await p.waitForSelector('text=ゲームを選ぶ');
+await p.click('.game-tile:has-text("大富豪")');
+await p.click('.game-detail button:has-text("ルール")');
 const t2 = await p.locator('.modal').innerText();
 ok(t2.includes('大富豪のルール') && t2.includes('【ON】革命') && t2.includes('【OFF】しばり'), 'トップから大富豪のルールが見られ、初期設定（革命ON・しばりOFF）が載る');
 await browser.close();

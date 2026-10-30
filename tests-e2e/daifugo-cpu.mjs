@@ -16,8 +16,9 @@ const ok = (c, msg) => { if (!c) throw new Error(`FAIL: ${msg}`); console.log(`o
 
 await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
-await p.selectOption('li:has-text("大富豪") .cpu-row select', LEVEL);
-await p.click('li:has-text("大富豪") button:has-text("CPU3人と対戦")');
+await p.click('.game-tile:has-text("大富豪")');
+await p.click(`.levels [data-level="${LEVEL}"]`);
+await p.click('.game-detail button:has-text("CPU3人と対戦")');
 
 // まずルールの設定画面が出る（招待URLやルームコードは出ない）。ここでルールを選んで始める
 await p.waitForSelector('.options');
@@ -77,7 +78,7 @@ ok((await p.locator('.hand .card').count()) > 0, '次のゲームが配られた
 
 // 途中でやめるとトップへ。始め直すと、設定は初期値に戻り、設定画面から「トップへ」でも戻れる
 await p.click('button:has-text("ゲームを終了")');
-await p.waitForSelector('text=ゲームを選んでルームを作る');
+await p.waitForSelector('text=ゲームを選ぶ');
 ok(true, '途中でやめるとトップに戻る');
 await p.click('li:has-text("大富豪") button:has-text("CPU3人と対戦")');
 await p.waitForSelector('.options');

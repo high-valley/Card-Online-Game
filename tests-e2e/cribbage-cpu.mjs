@@ -19,8 +19,10 @@ const shot = (name) => SHOTS && p.screenshot({ path: `${SHOTS}/${name}.png`, ful
 
 await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
-await p.selectOption('li:has-text("クリベッジ") .cpu-row select', LEVEL);
-await p.click('li:has-text("クリベッジ") button:has-text("CPUと対戦")');
+await p.click('.game-tile:has-text("クリベッジ")');
+await p.click(`.levels [data-level="${LEVEL}"]`);
+await p.click('.game-tile:has-text("クリベッジ")');
+await p.click('.game-detail button:has-text("CPUと対戦")');
 await p.waitForSelector('.board.cribbage');
 ok((await p.locator('.hand .card').count()) === 6, '手札6枚が配られた');
 ok((await p.locator('.opp-name', { hasText: `CPU（${LABEL}）` }).count()) === 1, `相手は CPU（${LABEL}）`);

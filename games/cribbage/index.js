@@ -26,6 +26,7 @@ function logText(entry, names) {
 export default {
   id: 'cribbage',
   name: 'クリベッジ',
+  emblem: { mark: '♣', red: false },
   minPlayers: 2,
   maxPlayers: 2,
   description: '2人対戦（CPU対戦あり）。クリブ・ペギング・手札採点で121点先取',

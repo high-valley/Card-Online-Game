@@ -16,9 +16,12 @@ const ok = (c, msg) => { if (!c) throw new Error(`FAIL: ${msg}`); console.log(`o
 
 await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
-ok((await p.locator('li:has-text("大富豪") .cpu-row').count()) === 1, '大富豪にもCPU対戦の欄が出る');
-await p.selectOption('li:has-text("ジン・ラミー") .cpu-row select', LEVEL);
-await p.click('li:has-text("ジン・ラミー") button:has-text("CPUと対戦")');
+await p.click('.game-tile:has-text("大富豪")');
+ok((await p.locator('.game-detail .cpu-row').count()) === 1, '大富豪にもCPU対戦の欄が出る');
+await p.click('.game-tile:has-text("ジン・ラミー")');
+await p.click(`.levels [data-level="${LEVEL}"]`);
+await p.click('.game-tile:has-text("ジン・ラミー")');
+await p.click('.game-detail button:has-text("CPUと対戦")');
 await p.waitForSelector('.board.gin');
 ok((await p.locator('.hand .card').count()) === 10, '手札10枚が配られた');
 ok((await p.locator('.opp-name', { hasText: `CPU（${LABEL}）` }).count()) === 1, `相手は CPU（${LABEL}）`);
@@ -66,6 +69,6 @@ await p.click('button:has-text("次のラウンド"), button:has-text("配り直
 await p.waitForSelector('.board.gin');
 ok((await p.locator('.hand .card').count()) === 10, '次のラウンドが配られた');
 await p.click('button:has-text("ゲームを終了")');
-await p.waitForSelector('text=ゲームを選んでルームを作る');
+await p.waitForSelector('text=ゲームを選ぶ');
 ok(true, '途中でやめるとトップに戻る');
 await browser.close();
