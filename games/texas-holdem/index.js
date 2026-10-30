@@ -56,6 +56,8 @@ export default {
   handInBoard: true,
   // 相手は共通の相手欄ではなく、卓のまわりの席に並べる
   seatsInBoard: true,
+  // 他の人の操作は卓の上（ベット・フォールドの表示）でわかるので、下の履歴は出さない
+  hideLog: true,
   defaultOptions,
   deal,
   canPlay,
