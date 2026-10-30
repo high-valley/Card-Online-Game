@@ -1,3 +1,4 @@
+import { art } from './art.js';
 import { Board } from './Board.js';
 import { CPU_LEVELS, createCpu } from './cpu.js';
 import { OptionsForm } from './OptionsForm.js';
@@ -16,6 +17,7 @@ export default {
   id: 'daifugo',
   name: '大富豪',
   emblem: { mark: '♠', red: false },
+  art,
   minPlayers: 3,
   maxPlayers: 5,
   description: 'ジョーカー入り53枚。革命・8切りなどの特殊ルール対応（CPU対戦あり）',

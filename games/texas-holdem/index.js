@@ -1,3 +1,4 @@
+import { art } from './art.js';
 import { Board } from './Board.js';
 import { CPU_LEVELS, createCpu } from './cpu.js';
 import { OptionsForm } from './OptionsForm.js';
@@ -44,6 +45,7 @@ export default {
   id: 'holdem',
   name: 'テキサスホールデム',
   emblem: { mark: '♥', red: true },
+  art,
   minPlayers: 2,
   maxPlayers: 9,
   description: 'ポーカーの定番。ブラインドが上がるトーナメント（2〜9人）',
@@ -52,6 +54,8 @@ export default {
   selection: 'single',
   // 手札は2枚だけなので、場のカードのすぐ下に大きく出す（スマホでスクロールせずに見えるように）
   handInBoard: true,
+  // 相手は共通の相手欄ではなく、卓のまわりの席に並べる
+  seatsInBoard: true,
   defaultOptions,
   deal,
   canPlay,

@@ -67,6 +67,7 @@ while (Date.now() < deadline && hands < HANDS) {
   } else await p.waitForTimeout(250);
 }
 ok(hands >= 1, `${hands}ハンド最後まで進んだ（あなたの操作 ${moves} 回）`);
+if (await p.locator('.topbar').count()) await p.click('.topbar button:has-text("メニュー")');
 await p.click('button:has-text("ゲームを終了"), button:has-text("ルームを出る")');
 await p.waitForSelector('text=ゲームを選ぶ');
 ok(true, 'トップに戻れた');

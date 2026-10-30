@@ -16,7 +16,6 @@ export function ResultDetail({ result, names, uid }) {
   return h(
     'section',
     { class: 'holdem-result' },
-    result.matchOver && h('p', { class: 'badge hot' }, `優勝：${name(result.winner)}${result.winner === uid ? '！' : ''}`),
     hr?.uncontested
       ? h('p', null, h('strong', null, `${name(Object.keys(hr.awards)[0])} が ${fmt(Object.values(hr.awards)[0])} を獲得`), h('span', { class: 'sub' }, '（他の人が降りたため、手札は公開されません）'))
       : [

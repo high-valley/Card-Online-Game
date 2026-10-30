@@ -77,6 +77,7 @@ ok(opts2.eightCut === false && opts2.revolution === false && opts2.round === 2, 
 ok((await p.locator('.hand .card').count()) > 0, '次のゲームが配られた');
 
 // 途中でやめるとトップへ。始め直すと、設定は初期値に戻り、設定画面から「トップへ」でも戻れる
+await p.click('.topbar button:has-text("メニュー")');
 await p.click('button:has-text("ゲームを終了")');
 await p.waitForSelector('text=ゲームを選ぶ');
 ok(true, '途中でやめるとトップに戻る');

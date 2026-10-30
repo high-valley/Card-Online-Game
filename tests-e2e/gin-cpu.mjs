@@ -67,6 +67,7 @@ ok((await p.locator('button:has-text("次のラウンド"), button:has-text("配
 await p.click('button:has-text("次のラウンド"), button:has-text("配り直す"), button:has-text("新しいマッチ")');
 await p.waitForSelector('.board.gin');
 ok((await p.locator('.hand .card').count()) === 10, '次のラウンドが配られた');
+await p.click('.topbar button:has-text("メニュー")');
 await p.click('button:has-text("ゲームを終了")');
 await p.waitForSelector('text=ゲームを選ぶ');
 ok(true, '途中でやめるとトップに戻る');

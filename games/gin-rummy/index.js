@@ -1,3 +1,4 @@
+import { art } from './art.js';
 import { Board } from './Board.js';
 import { CPU_LEVELS, createCpu } from './cpu.js';
 import { ResultDetail } from './ResultDetail.js';
@@ -29,6 +30,7 @@ export default {
   id: 'ginrummy',
   name: 'ジン・ラミー',
   emblem: { mark: '♦', red: true },
+  art,
   minPlayers: 2,
   maxPlayers: 2,
   description: '2人対戦（CPU対戦あり）。役を作ってノック・ジン。累積100点でマッチ終了',
