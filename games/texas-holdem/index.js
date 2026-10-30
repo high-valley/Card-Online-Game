@@ -67,5 +67,8 @@ export default {
   soundFor: (entry) => (entry.type === 'fold' || entry.type === 'check' || entry.type === 'skip' ? 'pass' : entry.effects?.includes('allin') ? 'special' : entry.type === 'show' ? 'card' : entry.type === 'call' || entry.type === 'bet' || entry.type === 'raise' ? 'discard' : null),
   cpu: { levels: CPU_LEVELS, opponents: 3, create: createCpu },
   playerStatus,
+  // 1ハンドごとに結果画面へ切り替えず、卓の上で決着を見せて自動で次のハンドへ（トーナメントが終わったら結果画面）
+  autoNextMs: (result) => (result.matchOver ? null : result.handResult?.uncontested ? 3500 : 6500),
+  roundSound: (result, uid) => ((result.handResult?.awards?.[uid] ?? 0) > 0 ? 'win' : null),
   resultActionLabel: (result) => (result.matchOver ? '新しいトーナメントを始める' : '次のハンド'),
 };

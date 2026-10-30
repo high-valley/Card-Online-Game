@@ -22,6 +22,7 @@ const audio = () => {
 
 /** 音の定義：f=周波数, t=開始までの秒, d=長さ, type=波形, v=音量, to=終わりの周波数 */
 export const SOUNDS = {
+  tap: [{ f: 1400, to: 900, d: 0.025, type: 'sine', v: 0.05 }], // ボタンを押したときの小さなクリック
   draw: [{ f: 520, d: 0.05, type: 'triangle' }, { f: 760, t: 0.05, d: 0.07, type: 'triangle' }],
   discard: [{ f: 240, to: 150, d: 0.12, type: 'square', v: 0.07 }],
   card: [{ f: 400, to: 260, d: 0.07, type: 'triangle', v: 0.14 }],

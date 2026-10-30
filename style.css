@@ -38,10 +38,12 @@ h2 { margin: 14px 0 0; font-size: .82rem; color: var(--muted); letter-spacing: .
 button, input, select { font: inherit; min-height: 46px; border-radius: 12px; border: 1px solid var(--glass-line); padding: 8px 14px; color: var(--ink); background: var(--glass-hi); }
 input, select { background: rgba(0, 0, 0, .3); } input::placeholder { color: var(--faint); }
 button { cursor: pointer; font-weight: 600; transition: transform .12s var(--ease), background .15s, box-shadow .15s, opacity .15s; }
-button:hover:not(:disabled) { background: rgba(255, 255, 255, .15); } button:active:not(:disabled) { transform: translateY(1px) scale(.98); }
+button:not(.card):hover:not(:disabled) { background: rgba(255, 255, 255, .15); } /* カードは自分の見た目のまま（マウスを乗せても緑にならない） */
+/* 押した手応え：押している間はへこんで少し暗くなる（is-pressed は iPhone でも確実に付ける印） */
+button:not(.card):active:not(:disabled), button.is-pressed:not(.card):not(:disabled) { transform: translateY(2px) scale(.96); filter: brightness(.88); transition-duration: .05s; }
 button.primary { background: linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%); color: var(--gold-ink); border-color: #fff4; font-weight: 800; box-shadow: 0 3px 0 #8a5d00, 0 6px 14px rgba(0, 0, 0, .35); }
 button.primary:hover:not(:disabled) { background: linear-gradient(180deg, #ffd96a 0%, #e3a622 100%); }
-button.primary:active:not(:disabled) { box-shadow: 0 1px 0 #8a5d00, 0 3px 8px rgba(0, 0, 0, .35); transform: translateY(2px); }
+button.primary:active:not(:disabled), button.primary.is-pressed:not(:disabled) { box-shadow: 0 0 0 #8a5d00, 0 2px 6px rgba(0, 0, 0, .35); transform: translateY(3px) scale(.98); }
 button.link { background: none; border: none; color: var(--muted); min-height: 38px; padding: 4px 10px; font-weight: 600; }
 button.link:hover:not(:disabled) { color: var(--ink); background: var(--glass-hi); }
 button:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
@@ -244,6 +246,18 @@ body.modal-open { overflow: hidden; }
 .holdem-result .hr-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; } .holdem-result .me strong { color: var(--gold); }
 .chips-list { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-direction: column; gap: 2px; font-size: .9rem; } .chips-list .me { font-weight: 800; }
 .holdem-options { display: flex; flex-direction: column; gap: 10px; }
+
+/* ---- マッチの途中の決着：卓の上の結果と「次へ」 ---- */
+.hand-summary { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 12px; border-radius: 14px; background: rgba(0, 0, 0, .3); border: 1px solid var(--gold); box-shadow: 0 0 18px rgba(244, 198, 83, .25); animation: rise .28s var(--ease); }
+.hand-summary p { margin: 0; } .hand-summary .won strong { font-size: 1.05rem; } .hand-summary .won.me strong { color: var(--gold); }
+.hand-summary .won { text-align: center; } .hand-summary .hand-name { display: inline-block; margin-left: 8px; font-weight: 800; color: var(--gold); white-space: nowrap; }
+.hand-summary .delta { font-size: 1.3rem; font-weight: 900; letter-spacing: .02em; } .delta.plus { color: var(--ok); } .delta.minus { color: var(--danger); }
+.shown.winner .shown-cards .card { box-shadow: 0 0 0 2px var(--gold), 0 0 12px rgba(244, 198, 83, .6); }
+.round-next { order: 0; display: flex; flex-direction: column; gap: 8px; } .round-next .sub { text-align: center; margin: 0; }
+.next-row { display: flex; gap: 8px; } .next-row .primary { flex: 1; } .next-row .link { flex: none; }
+.next-bar { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.next-bar span { display: block; height: 100%; background: var(--gold); transform-origin: left; animation: next-shrink linear forwards; }
+@keyframes next-shrink { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
 /* ---- 最新版の確認・更新 ---- */
 .version { margin-top: 8px; padding: 12px 14px; border-radius: var(--radius); background: var(--glass); border: 1px solid var(--glass-line); display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }

@@ -21,6 +21,24 @@ function logLine(entry, names, mod) {
 /** 名前から決まる色相（アイコンの色分け用） */
 const hueOf = (name) => [...name].reduce((a, c) => (a * 31 + c.codePointAt(0)) % 360, 17);
 
+/** マッチの途中の決着のあと：次へ進むまでの残り時間（バーが縮む）と、すぐ次へ・止めるボタン */
+function nextBar({ app, mod, result, isHost, actions }) {
+  const next = app.next;
+  const label = mod.resultActionLabel?.(result) ?? '次へ';
+  const running = next && !next.paused;
+  const left = running ? Math.max(0, next.at - Date.now()) : 0;
+  return h(
+    'div',
+    { class: `round-next${running ? ' running' : ''}` },
+    running && h('div', { class: 'next-bar', 'aria-hidden': 'true' }, h('span', { style: `animation-duration:${next.ms}ms;animation-delay:-${next.ms - left}ms` })),
+    isHost
+      ? h('div', { class: 'next-row' },
+          h('button', { class: 'primary', disabled: app.busy, onClick: () => actions.start() }, running ? `すぐ${label}へ` : label),
+          running && h('button', { class: 'link', onClick: () => actions.pauseNext() }, '止める'))
+      : h('p', { class: 'sub' }, running ? `まもなく${label}が始まります` : 'ホストの操作を待っています…'),
+  );
+}
+
 /** ゲーム画面：上に他プレイヤーとログ、中央にゲームの Board、下に自分の手札 */
 export function gameScreen({ app, model, actions }) {
   const { room, players, state, uid, hand } = model;
@@ -39,6 +57,8 @@ export function gameScreen({ app, model, actions }) {
   const groups = !app.handOrder && mod.handGroups ? mod.handGroups(hand, g) : [sorted];
   const selected = sorted.filter((c) => app.selected.has(c));
   const mine = turn === uid;
+  // マッチの途中の決着：結果画面に切り替えず、この画面のまま結果を見せて次へ進む
+  const between = room.status === 'finished';
 
   // 重なり具合は CSS が、枚数（--n）とまとまりの数（--g）と画面幅から決める（17〜18枚でもスマホ幅に収まる）
   const handEl = h(
@@ -88,6 +108,7 @@ export function gameScreen({ app, model, actions }) {
       onAction: (action) => actions.act(action),
       handEl: mod.handInBoard ? handEl : undefined,
     }),
+    between && nextBar({ app, mod, result: state.result, isHost, actions }),
     app.notice && h('p', { class: 'notice', role: 'status' }, app.notice),
     !mod.handInBoard && handEl,
     h('ol', { class: 'log', 'aria-label': '直近の出来事' }, state.log.slice(-4).reverse().map((e) => h('li', null, logLine(e, names, mod)))),

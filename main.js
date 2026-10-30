@@ -12,6 +12,7 @@ import { topScreen } from './common/screens/top.js';
 import { closeRulebook, showRulebook } from './common/ui/rulebook.js';
 import { CURRENT, DEV_ID, applyUpdate, fetchLatest, isNewer, stripUpdateParam } from './common/version.js';
 import { play, setMuted, isMuted, soundForEntry, unlockAudio } from './common/ui/sound.js';
+import { haptic } from './common/ui/haptic.js';
 import { getGame } from './games/index.js';
 import './style.css';
 
@@ -47,6 +48,7 @@ function render() {
   else if (m.room === null) [el, screen] = [loading('ルームが見つかりません', true), 'loading'];
   else if (!m.playersLoaded) [el, screen] = [loading('読み込み中…'), 'loading'];
   else if (m.room.status === 'playing' && m.state?.game && !m.state.game.ended) [el, screen] = [gameScreen({ app, model: m, actions }), 'game'];
+  else if (m.room.status === 'finished' && m.state?.result && m.state.game && nextMsOf(m) != null) [el, screen] = [gameScreen({ app, model: m, actions }), 'game'];
   else if (m.room.status === 'finished' && m.state?.result) [el, screen] = [resultScreen({ app, model: m, actions }), 'result'];
   else if (m.room.status === 'playing' || m.room.status === 'finished') [el, screen] = [loading('読み込み中…'), 'loading'];
   else [el, screen] = [lobbyScreen({ app, model: m, actions }), 'lobby'];
@@ -54,6 +56,23 @@ function render() {
   if (root.firstElementChild?.outerHTML === el.outerHTML) return;
   root.replaceChildren(el);
   animateNew(screen);
+}
+
+/** マッチの途中の決着なら、次へ進むまでの時間（ミリ秒）。それ以外は null */
+function nextMsOf(m) {
+  const r = m?.room?.status === 'finished' ? m.state?.result : null;
+  return r ? getGame(m.room.gameId)?.autoNextMs?.(r) ?? null : null;
+}
+
+/** マッチの途中の決着なら、ゲーム画面のまま少し見せてから、ホストが自動で次を配る（止めることもできる） */
+let nextTimer = null;
+function scheduleNext(m) {
+  const ms = nextMsOf(m);
+  const key = ms == null ? null : `${app.roomId}:${m.state.round}`;
+  if (key === app.next?.key) return;
+  clearTimeout(nextTimer);
+  app.next = key ? { key, ms, at: Date.now() + ms, paused: false } : null;
+  if (key && m.room.hostUid === app.uid) nextTimer = setTimeout(() => app.next?.key === key && !app.next.paused && actions.start(), ms);
 }
 
 /** 新しく現れた（data-key が前回の描画になかった）カードを動かす。画面が切り替わった直後は動かさない */
@@ -97,6 +116,7 @@ function applyModel(model) {
   playSounds(model);
   if (status) prevStatus = status;
   app.model = model;
+  scheduleNext(model);
   render();
   autoAct(model);
 }
@@ -136,6 +156,12 @@ function playSounds(model) {
   }
   if (room.status === 'finished' && prevStatus !== 'finished' && state.result) {
     const r = state.result;
+    if (mod.autoNextMs?.(r) != null) {
+      const name = mod.roundSound?.(r, model.uid);
+      if (name) setTimeout(() => play(name), 300);
+      soundMemo = { key, version: state.version };
+      return;
+    }
     const decided = Object.values(r.points ?? {}).some((p) => p > 0); // 引き分け（全員0点）は鳴らさない
     if (decided) setTimeout(() => play(r.ranking?.[0] === model.uid ? 'win' : 'lose'), 500);
   }
@@ -257,7 +283,14 @@ const actions = {
       enter(id);
     });
   },
+  /** 自動で次へ進むのを、この決着だけ止める（結果をゆっくり見たいとき） */
+  pauseNext() {
+    clearTimeout(nextTimer);
+    if (app.next) app.next.paused = true;
+    render();
+  },
   start() {
+    clearTimeout(nextTimer);
     if (local) {
       app.selected.clear();
       local.start();
@@ -414,6 +447,28 @@ function watchUpdates() {
   });
 }
 
+/** 押した手応え：ボタンを押した瞬間に、へこむ表示（is-pressed）・小さなクリック音・触覚。手札のカードは触覚だけ */
+function pressFeedback() {
+  let pressed = null;
+  const release = () => { pressed?.classList.remove('is-pressed'); pressed = null; };
+  addEventListener('pointerdown', (e) => {
+    if (e.button > 0) return;
+    const button = e.target.closest?.('button:not(:disabled)');
+    if (button) {
+      release();
+      pressed = button;
+      button.classList.add('is-pressed');
+      play('tap');
+      haptic();
+      return;
+    }
+    if (e.target.closest?.('.hand .card:not([aria-disabled="true"])')) haptic();
+  }, { capture: true, passive: true });
+  for (const type of ['pointerup', 'pointercancel', 'blur']) addEventListener(type, release, { capture: true, passive: true });
+  // iPhone の Safari は、タッチのイベントを待つ要素がないと :active の表示を出さない
+  document.addEventListener('touchstart', () => {}, { passive: true });
+}
+
 async function boot() {
   // 更新直後に付いている _v（キャッシュを避ける目印）は、URLから消す
   const clean = stripUpdateParam(location.href);
@@ -442,4 +497,5 @@ async function boot() {
 }
 
 unlockAudio();
+pressFeedback();
 boot();
