@@ -8,20 +8,21 @@ export function lobbyScreen({ app, model, actions }) {
   const game = getGame(room.gameId);
   const isHost = room.hostUid === uid;
   const url = `${location.origin}${location.pathname}?room=${model.roomId}`;
+  const solo = !!room.local; // CPU対戦の設定画面：招待・ルームコード・ゲームの切り替えは出さない
   const canStart = players.length >= game.minPlayers && players.length <= game.maxPlayers;
 
   return h(
     'main',
     { class: 'screen' },
     h('h1', null, game.name),
-    h('p', { class: 'sub' }, `${game.minPlayers === game.maxPlayers ? game.minPlayers : `${game.minPlayers}〜${game.maxPlayers}`}人 ／ ルームコード `, h('strong', null, room.code)),
+    h('p', { class: 'sub' }, solo ? 'CPU対戦（ルールを決めて始めます）' : `${game.minPlayers === game.maxPlayers ? game.minPlayers : `${game.minPlayers}〜${game.maxPlayers}`}人 ／ ルームコード `, !solo && h('strong', null, room.code)),
     game.rulebook && h('button', { class: 'link rules-link', onClick: () => actions.showRules(room.gameId, room.options) }, 'ルールを見る'),
-    h('div', { class: 'invite' }, h('input', { type: 'text', readOnly: true, value: url, onFocus: (e) => e.target.select() }), h('button', { onClick: () => actions.copy(url) }, app.copied ? 'コピーしました' : '招待URLをコピー')),
-    h('h2', null, `参加者（${players.length}/${game.maxPlayers}）`),
+    !solo && h('div', { class: 'invite' }, h('input', { type: 'text', readOnly: true, value: url, onFocus: (e) => e.target.select() }), h('button', { onClick: () => actions.copy(url) }, app.copied ? 'コピーしました' : '招待URLをコピー')),
+    h('h2', null, solo ? '対戦相手' : `参加者（${players.length}/${game.maxPlayers}）`),
     h(
       'ul',
       { class: 'players' },
-      players.map((p) => h('li', null, p.name, p.uid === room.hostUid && h('span', { class: 'badge' }, 'ホスト'), p.uid === uid && h('span', { class: 'sub' }, '（あなた）'))),
+      players.map((p) => h('li', null, p.name, p.uid === room.hostUid && !solo && h('span', { class: 'badge' }, 'ホスト'), p.uid === uid && h('span', { class: 'sub' }, '（あなた）'))),
     ),
     game.OptionsForm &&
       h(
@@ -36,7 +37,7 @@ export function lobbyScreen({ app, model, actions }) {
           room.status === 'dealing'
             ? h('p', null, 'カードを配っています…')
             : h('button', { class: 'primary', disabled: app.busy || !canStart, onClick: () => actions.start() }, canStart ? 'ゲーム開始' : `${game.minPlayers}人以上で開始できます`),
-          h(
+          !solo && h(
             'label',
             { class: 'field-row' },
             h('span', null, 'ゲームを切り替える'),
@@ -48,7 +49,7 @@ export function lobbyScreen({ app, model, actions }) {
           ),
         ]
       : h('p', { class: 'sub' }, 'ホストが開始するのを待っています…'),
-    h('button', { class: 'link', onClick: () => actions.leave() }, 'ルームを出る'),
+    h('button', { class: 'link', onClick: () => actions.leave() }, solo ? 'トップへ' : 'ルームを出る'),
     versionPanel({ app, actions }),
   );
 }

@@ -267,7 +267,7 @@ const actions = {
     return run(() => startRound({ roomId, room, players, state }));
   },
   changeGame: (gameId) => run(() => changeGame(app.roomId, gameId)),
-  setOptions: (options) => setOptions(app.roomId, options),
+  setOptions: (patch) => (local ? local.setOptions(patch) : setOptions(app.roomId, patch)),
   startCpu(gameId, levelId) {
     if (!needName()) return;
     detach();
@@ -280,10 +280,12 @@ const actions = {
     });
     app.roomId = 'local';
     app.selected.clear();
-    local.start();
+    // ルール設定のあるゲームは、設定画面から始める。ないゲームはすぐ始める
+    if (getGame(gameId).OptionsForm) local.openSettings();
+    else local.start();
   },
   backToLobby() {
-    if (local) return actions.leave(); // CPU対戦にロビーはない。トップに戻る
+    if (local) return getGame(app.model.room.gameId).OptionsForm ? local.openSettings() : actions.leave(); // CPU対戦：ルール設定へ（設定のないゲームはトップへ）
     return run(() => backToLobby(app.roomId));
   },
   endGame() {

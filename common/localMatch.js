@@ -24,7 +24,8 @@ export function createLocalMatch({ mod, level, humanUid, humanName, onChange, ra
     { uid: humanUid, name: humanName, seat: 0, handCount: 0, totalPoints: {}, lastSeen: null },
     ...cpus.map((c, i) => ({ uid: c.uid, name: c.name, seat: i + 1, handCount: 0, totalPoints: {}, lastSeen: null })),
   ];
-  const room = { code: '', gameId: mod.id, hostUid: humanUid, status: 'waiting', options: mod.defaultOptions, members: players.map((p) => p.uid) };
+  // local: true は、画面が「CPU対戦の設定画面」（招待URLなし）として扱うための目印
+  const room = { code: '', local: true, gameId: mod.id, hostUid: humanUid, status: 'waiting', options: mod.defaultOptions, members: players.map((p) => p.uid) };
   let state = null;
   let hands = {};
   let deck = null;
@@ -115,6 +116,18 @@ export function createLocalMatch({ mod, level, humanUid, humanName, onChange, ra
       for (const c of cpus) c.impl.reset();
       emit();
       schedule();
+    },
+    /** ルールの設定画面を出す（開始前、または結果画面から「ルールを変える」）。進行中のCPUの手は止める */
+    openSettings() {
+      clearTimeout(timer);
+      room.status = 'waiting';
+      emit();
+    },
+    /** ルール設定を、項目ごとに更新する（設定画面でのみ） */
+    setOptions(patch) {
+      if (room.status !== 'waiting') return;
+      room.options = { ...room.options, ...patch };
+      emit();
     },
     /** 人間の操作（自動操作を含む）。不正な操作は例外 */
     act(action) {

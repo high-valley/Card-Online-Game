@@ -34,7 +34,7 @@ export function resultScreen({ app, model, actions }) {
     isHost
       ? [
           h('button', { class: 'primary', disabled: app.busy, onClick: () => actions.start() }, mod.resultActionLabel?.(result) ?? 'もう一度'),
-          h('button', { disabled: app.busy, onClick: () => actions.backToLobby() }, '別のゲームで遊ぶ'),
+          h('button', { disabled: app.busy, onClick: () => actions.backToLobby() }, room.local ? (mod.OptionsForm ? 'ルールを変える' : 'トップへ') : '別のゲームで遊ぶ'),
         ]
       : h('p', { class: 'sub' }, 'ホストの操作を待っています…'),
     h('button', { class: 'link', onClick: () => actions.leave() }, 'ルームを出る'),

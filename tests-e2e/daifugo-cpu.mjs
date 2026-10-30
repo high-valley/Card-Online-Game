@@ -18,7 +18,22 @@ await p.goto(URL0);
 await p.fill('input[placeholder="ニックネーム"]', 'あなた');
 await p.selectOption('li:has-text("大富豪") .cpu-row select', LEVEL);
 await p.click('li:has-text("大富豪") button:has-text("CPU3人と対戦")');
+
+// まずルールの設定画面が出る（招待URLやルームコードは出ない）。ここでルールを選んで始める
+await p.waitForSelector('.options');
+ok((await p.locator('.invite').count()) === 0 && (await p.locator('text=ルームコード').count()) === 0, '設定画面に、招待URL・ルームコードは出ない');
+ok((await p.locator('.players li').count()) === 4, '対戦相手（あなた＋CPU3人）が並ぶ');
+ok((await p.locator('input[name="revolution"]').isChecked()) && !(await p.locator('input[name="lock"]').isChecked()), 'ルールの初期値（革命ON・しばりOFF）');
+await p.locator('label.rule:has(input[name="revolution"])').click();
+await p.locator('label.rule:has(input[name="lock"])').click();
+await p.click('button:has-text("ゲーム開始")');
 await p.waitForSelector('.board');
+const opts = await p.evaluate(() => window.__app.model.state.game.options);
+ok(opts.revolution === false && opts.lock === true && opts.eightCut === true, `選んだルールで始まった（革命OFF・しばりON・8切りON）`);
+await p.click('.hand-tools button:has-text("ルール")');
+const rb = await p.locator('.modal').innerText();
+ok(rb.includes('【OFF】革命') && rb.includes('【ON】しばり'), 'ルールブックにも、選んだ設定が載る');
+await p.click('.modal .close');
 ok((await p.locator('.opp-name', { hasText: `（${LABEL}）` }).count()) === 3, `相手は CPU3人（${LABEL}）`);
 const total = (await p.locator('.opp-count').allInnerTexts()).filter((t) => t.endsWith('枚')).reduce((n, t) => n + parseInt(t, 10), 0);
 ok(total === 53, `53枚が配られた（${total}）`);
@@ -49,10 +64,25 @@ console.log('あなたの手', moves);
 await p.waitForSelector('table.result', { timeout: 5000 });
 ok((await p.locator('table.result tbody tr').count()) === 4, '4人分の順位が出た');
 console.log((await p.locator('table.result').innerText()).replace(/\n+/g, ' / '));
-await p.click('button:has-text("もう一度")');
+// 結果画面から設定へ戻り、ルールを変えて続けられる（設定は前回のまま残っている）
+await p.click('button:has-text("ルールを変える")');
+await p.waitForSelector('.options');
+ok(!(await p.locator('input[name="revolution"]').isChecked()) && (await p.locator('input[name="lock"]').isChecked()), '設定画面に戻ると、設定は前回のまま');
+await p.locator('label.rule:has(input[name="eightCut"])').click();
+await p.click('button:has-text("ゲーム開始")');
 await p.waitForSelector('.board');
+const opts2 = await p.evaluate(() => ({ ...window.__app.model.state.game.options, round: window.__app.model.state.round }));
+ok(opts2.eightCut === false && opts2.revolution === false && opts2.round === 2, `ルールを変えて2回戦が始まった（8切りOFF・2回戦）`);
 ok((await p.locator('.hand .card').count()) > 0, '次のゲームが配られた');
+
+// 途中でやめるとトップへ。始め直すと、設定は初期値に戻り、設定画面から「トップへ」でも戻れる
 await p.click('button:has-text("ゲームを終了")');
 await p.waitForSelector('text=ゲームを選んでルームを作る');
 ok(true, '途中でやめるとトップに戻る');
+await p.click('li:has-text("大富豪") button:has-text("CPU3人と対戦")');
+await p.waitForSelector('.options');
+ok(await p.locator('input[name="revolution"]').isChecked(), '始め直すと、設定は初期値に戻る');
+await p.click('button:has-text("トップへ")');
+await p.waitForSelector('text=ゲームを選んでルームを作る');
+ok(true, '設定画面から「トップへ」で戻れる');
 await browser.close();
