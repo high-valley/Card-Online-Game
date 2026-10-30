@@ -50,6 +50,8 @@ export default {
   deck: DECK_SPEC,
   usesDeck: true,
   selection: 'single',
+  // 手札は2枚だけなので、場のカードのすぐ下に大きく出す（スマホでスクロールせずに見えるように）
+  handInBoard: true,
   defaultOptions,
   deal,
   canPlay,
