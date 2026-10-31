@@ -275,3 +275,28 @@ describe('上がりと結果', () => {
     expect(Object.values(getResult(g).titles)).toEqual(['大富豪', '富豪', '平民', '貧民', '大貧民']);
   });
 });
+
+describe('場の履歴（pile）', () => {
+  it('出した順に積み、場が流れたら空になる', () => {
+    const hands = { a: ['S4', 'S9', 'C5'], b: ['H6', 'D7'], c: ['C10', 'D3'] };
+    let g = mk(hands, { options: { eightCut: false } });
+    g = play(g, hands, 'a', ['S4']).game;
+    g = play(g, hands, 'b', ['H6']).game;
+    g = play(g, hands, 'c', ['C10']).game;
+    expect(g.pile).toEqual([
+      { uid: 'a', cards: ['S4'] },
+      { uid: 'b', cards: ['H6'] },
+      { uid: 'c', cards: ['C10'] },
+    ]);
+    g = applyAction(g, { type: 'pass', uid: 'a' }).game;
+    g = applyAction(g, { type: 'pass', uid: 'b' }).game;
+    expect(g.field).toBeNull();
+    expect(g.pile).toEqual([]);
+  });
+  it('pile のない古い状態からでも積める', () => {
+    const hands = { a: ['S4', 'S9'], b: ['H6', 'D7'], c: ['C10', 'D3'] };
+    const g = mk(hands);
+    delete g.pile;
+    expect(play(g, hands, 'a', ['S4']).game.pile).toEqual([{ uid: 'a', cards: ['S4'] }]);
+  });
+});

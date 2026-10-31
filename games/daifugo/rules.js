@@ -6,6 +6,7 @@
  *   counts      uid -> 残り枚数
  *   turnUid     手番の uid（終了時 null）
  *   field       場 { uid, cards, kind, count, rank, ranks, suits, joker } | null
+ *   pile        場が流れるまでに出た組の履歴（出した順）[{ uid, cards }]。画面で前の組を重ねて見せる用
  *   lastPlayer  最後にカードを出した uid
  *   passed      uid -> true（場が流れるまで出せない人）
  *   lock        しばり中のスート配列 | null
@@ -187,6 +188,7 @@ function nextAfter(g, uid, pred) {
 
 function flush(g) {
   g.field = null;
+  g.pile = [];
   g.lock = null;
   g.passed = {};
 }
@@ -219,6 +221,7 @@ export function createGame({ order, hands, turnUid, options = defaultOptions, pr
     counts: Object.fromEntries(order.map((u) => [u, hands[u].length])),
     turnUid,
     field: null,
+    pile: [],
     lastPlayer: null,
     passed: {},
     lock: null,
@@ -316,6 +319,7 @@ export function applyAction(game, action) {
     flush(g);
   } else {
     g.field = { uid, cards: [...action.cards], ...combo };
+    g.pile = [...(g.pile ?? []), { uid, cards: [...action.cards] }]; // 古い状態（pile なし）からの続きでも動くように
   }
 
   if (g.counts[uid] === 0) {

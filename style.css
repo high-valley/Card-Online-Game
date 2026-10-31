@@ -159,6 +159,13 @@ button:disabled { opacity: .42; cursor: not-allowed; box-shadow: none; }
 .badges { min-height: 26px; display: flex; gap: 6px; }
 .field { min-height: calc(var(--cw) * 1.4 + 40px); width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 18px; }
 .field-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; } .field-empty, .field-by { color: var(--muted); font-size: .9rem; }
+/* 大富豪の場：前の組を上にずらして奥に重ね、数字とマークの角を見せる（--back は最新から何組前か） */
+.field-stack { --lift: calc(var(--cw) * .6); display: grid; justify-items: center; padding-top: calc(var(--depth, 0) * var(--lift)); max-width: 100%; }
+.field-group { grid-area: 1 / 1; position: relative; transform: translateY(calc(var(--back) * var(--lift) * -1)) rotate(calc(var(--back) * -2.5deg)); }
+.field-group.past { display: flex; filter: brightness(.7) saturate(.8); }
+.field-group.past .card + .card { margin-left: calc(var(--cw) * -.52); } /* 組の中も角が見える分だけ重ねる */
+.field-group-by { position: absolute; left: calc(100% + 6px); top: 3px; color: var(--muted); font-size: .72rem; white-space: nowrap; filter: brightness(1.4); }
+.field-more { grid-area: 1 / 1; align-self: start; transform: translateY(calc(var(--depth) * var(--lift) * -1 - 1.5em)); color: var(--muted); font-size: .72rem; }
 .field-empty { border: 2px dashed var(--glass-line); border-radius: 14px; padding: 22px 34px; }
 .hint { min-height: 1.5em; text-align: center; font-size: 1rem; font-weight: 700; padding: 6px 14px; border-radius: 999px; background: rgba(0, 0, 0, .25); }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; } .actions button { min-width: 108px; min-height: 50px; font-size: 1rem; }
