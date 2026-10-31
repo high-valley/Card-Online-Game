@@ -200,7 +200,8 @@ button:disabled { opacity: .42; cursor: not-allowed; box-shadow: none; }
 .card.small { --w: clamp(32px, 8.6vw, 42px); } .card.small .pip { font-size: 1.5em; } .card.small .corner.br { display: none; }
 .card[aria-disabled="true"] { cursor: default; }
 .card.fresh { box-shadow: 0 0 0 3px var(--gold), 0 0 16px var(--gold); }
-.card.fresh::after { content: 'NEW'; position: absolute; top: -10px; right: -8px; background: var(--gold); color: var(--gold-ink); font-size: .5em; font-weight: 800; border-radius: 6px; padding: .25em .5em; letter-spacing: .04em; z-index: 3; }
+/* 印は左上に付ける（手札は右のカードが上に重なるので、右に付けると右隣のカードの印に見える） */
+.card.fresh::after { content: 'NEW'; position: absolute; top: -10px; left: -8px; background: var(--gold); color: var(--gold-ink); font-size: .5em; font-weight: 800; border-radius: 6px; padding: .25em .5em; letter-spacing: .04em; z-index: 3; }
 .card.empty { background: transparent; border: 2px dashed rgba(255, 255, 255, .25); box-shadow: none; }
 
 /* 裏面 */
